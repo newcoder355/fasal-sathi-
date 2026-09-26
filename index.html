@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1f7a4d" />
+  <title>FasalSathi AI — Prototype</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    :root {
+      --green: #1f7a4d;
+      --green-dark: #155f3b;
+      --green-soft: #eef8f2;
+      --orange: #e58b2a;
+      --text: #18231d;
+      --muted: #6d7972;
+      --line: #dfe7e2;
+      --soft: #f7f9f8;
+      --white: #ffffff;
+      --danger: #b64040;
+      --shadow: 0 14px 40px rgba(20, 59, 38, 0.08);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #fbfcfb;
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans Devanagari", "Nirmala UI", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    button, select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 720px;
+      min-height: 100vh;
+      background: var(--white);
+      border-left: 1px solid #edf1ee;
+      border-right: 1px solid #edf1ee;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 22px 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 20px;
+    }
+
+    .prototype-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green-dark);
+      background: var(--green-soft);
+      padding: 7px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .progress-wrap {
+      padding: 0 22px 12px;
+    }
+
+    .progress {
+      height: 5px;
+      background: #edf1ee;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 25%;
+      background: var(--green);
+      border-radius: inherit;
+      transition: width 240ms ease;
+    }
+
+    main {
+      padding: 18px 22px 36px;
+    }
+
+    .screen {
+      display: none;
+      animation: fade 180ms ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      color: var(--green);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 6vw, 42px);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      margin: 0 0 12px;
+    }
+
+    h2 {
+      font-size: 23px;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .section-head {
+      margin-bottom: 26px;
+    }
+
+    .choice-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .choice {
+      width: 100%;
+      text-align: left;
+      background: var(--white);
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      cursor: pointer;
+      transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .choice:hover {
+      border-color: #a9cdb8;
+      box-shadow: 0 8px 24px rgba(31, 122, 77, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .choice.selected {
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .choice-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .choice-sub {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .arrow {
+      color: var(--green);
+      font-size: 20px;
+    }
+
+    .field {
+      margin-top: 24px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 9px;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    select {
+      width: 100%;
+      border: 1.5px solid var(--line);
+      background: var(--white);
+      color: var(--text);
+      padding: 16px 14px;
+      border-radius: 14px;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(31, 122, 77, 0.08);
+    }
+
+    .hint {
+      margin-top: 9px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .notice {
+      margin-top: 16px;
+      padding: 13px 14px;
+      background: #fff8ef;
+      border: 1px solid #f3d8b7;
+      border-radius: 13px;
+      color: #775126;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      gap: 11px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 48px;
+      border-radius: 14px;
+      padding: 0 17px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
+    }
+
+    .btn:active {
+      transform: scale(0.985);
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--green);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--green-dark);
+    }
+
+    .btn-primary:disabled {
+      background: #b9c9c0;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--soft);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .location-tools {
+      display: flex;
+      gap: 10px;
+      margin: 18px 0 12px;
+      flex-wrap: wrap;
+    }
+
+    .location-tools .btn {
+      min-height: 44px;
+    }
+
+    #map {
+      width: 100%;
+      height: 380px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: #e9efeb;
+    }
+
+    .coord-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .coord {
+      padding: 13px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+    }
+
+    .coord small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .coord strong {
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .status {
+      margin-top: 11px;
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .complete {
+      padding: 26px 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      background: var(--white);
+    }
+
+    .success-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+
+    .summary {
+      margin-top: 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      align-items: flex-start;
+    }
+
+    .summary-row span:first-child {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary-row strong {
+      text-align: right;
+      font-size: 14px;
+    }
+
+    .next-module {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .footer-note {
+      margin-top: 28px;
+      text-align: center;
+      color: #8a958f;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .leaflet-control-attribution {
+      font-size: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .topbar {
+        padding-inline: 16px;
+      }
+
+      .progress-wrap,
+      main {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      #map {
+        height: 330px;
+      }
+
+      .coord-card {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column-reverse;
+      }
+
+      .actions .btn {
+        width: 100%;
+      }
+
+      .prototype-badge {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">🌱</div>
+        <div>FasalSathi AI</div>
+      </div>
+      <div class="prototype-badge">SIH Prototype</div>
+    </header>
+
+    <div class="progress-wrap">
+      <div class="progress" aria-label="Setup progress">
+        <span id="progressBar"></span>
+      </div>
+    </div>
+
+    <main>
+      <!-- STEP 1: LANGUAGE -->
+      <section class="screen active" id="screen-language">
+        <div class="section-head">
+          <div class="eyebrow">Step 1</div>
+          <h1>भाषा चुनिए</h1>
+          <p>अपनी पसंद की भाषा चुनें। / Choose your preferred language.</p>
+        </div>
+
+        <div class="choice-grid">
+          <button class="choice" data-lang="hi">
+            <div>
+              <div class="choice-title">हिंदी</div>
+              <div class="choice-sub">Hindi</div>
+            </div>
+            <div class="arrow">→</div>
+          </button>
+
+          <button class="choice" data-lang="mr">
+            <div>
+              <div class="choice-title">मराठी</div>
+              <div class="choice-sub">Marathi</div>
+            </div>
+            <div class="arrow">→</div>
+          </button>
+
+          <button class="choice" data-lang="en">
+            <div>
+              <div class="choice-title">English</div>
+              <div class="choice-sub">English</div>
+            </div>
+            <div class="arrow">→</div>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 2: CROP -->
+      <section class="screen" id="screen-crop">
+        <div class="section-head">
+          <div class="eyebrow" data-i18n="step2">Step 2</div>
+          <h1 data-i18n="cropTitle">Choose your crop</h1>
+          <p data-i18n="cropSubtitle">
+            Select the crop grown in this field. Tomato is enabled in this prototype.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="cropSelect" data-i18n="cropLabel">Crop</label>
+          <select id="cropSelect">
+            <option value="" data-i18n-option="selectCrop">Select crop</option>
+            <option value="tomato" data-i18n-option="tomato">Tomato — Available</option>
+            <option value="potato" disabled data-i18n-option="potato">Potato — Coming soon</option>
+            <option value="wheat" disabled data-i18n-option="wheat">Wheat — Coming soon</option>
+            <option value="rice" disabled data-i18n-option="rice">Rice — Coming soon</option>
+            <option value="maize" disabled data-i18n-option="maize">Maize — Coming soon</option>
+            <option value="soybean" disabled data-i18n-option="soybean">Soybean — Coming soon</option>
+            <option value="onion" disabled data-i18n-option="onion">Onion — Coming soon</option>
+          </select>
+          <div class="hint" data-i18n="cropHint">
+            More crop-specific forecasting modules can be added later.
+          </div>
+        </div>
+
+        <div class="notice" data-i18n="prototypeNotice">
+          Prototype scope: only Tomato can continue to the field-location step.
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" data-back="language" data-i18n="back">Back</button>
+          <button class="btn btn-primary" id="cropContinue" disabled data-i18n="continue">Continue</button>
+        </div>
+      </section>
+
+      <!-- STEP 3: FIELD LOCATION -->
+      <section class="screen" id="screen-location">
+        <div class="section-head">
+          <div class="eyebrow" data-i18n="step3">Step 3</div>
+          <h1 data-i18n="locationTitle">Pin your field location</h1>
+          <p data-i18n="locationSubtitle">
+            Use your current location or tap the map to place the pin exactly on the field.
+          </p>
+        </div>
+
+        <div class="location-tools">
+          <button class="btn btn-secondary" id="currentLocationBtn" data-i18n="useCurrent">
+            ◎ Use current location
+          </button>
+          <button class="btn btn-secondary" id="clearPinBtn" data-i18n="clearPin">
+            Clear pin
+          </button>
+        </div>
+
+        <div id="map" aria-label="Field location map"></div>
+
+        <div class="coord-card">
+          <div class="coord">
+            <small data-i18n="latitude">Latitude</small>
+            <strong id="latValue">—</strong>
+          </div>
+          <div class="coord">
+            <small data-i18n="longitude">Longitude</small>
+            <strong id="lonValue">—</strong>
+          </div>
+        </div>
+
+        <div class="status" id="locationStatus" data-i18n="mapHint">
+          Tap the map to place your field pin.
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" data-back="crop" data-i18n="back">Back</button>
+          <button class="btn btn-primary" id="saveLocationBtn" disabled data-i18n="saveField">
+            Save field location
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 4: DONE -->
+      <section class="screen" id="screen-done">
+        <div class="complete">
+          <div class="success-icon">✓</div>
+          <h2 data-i18n="doneTitle">Field setup complete</h2>
+          <p data-i18n="doneSubtitle">
+            This prototype now has the crop and exact field coordinates needed for the weather layer.
+          </p>
+
+          <div class="summary">
+            <div class="summary-row">
+              <span data-i18n="selectedLanguage">Language</span>
+              <strong id="summaryLanguage">—</strong>
+            </div>
+            <div class="summary-row">
+              <span data-i18n="selectedCrop">Crop</span>
+              <strong id="summaryCrop">—</strong>
+            </div>
+            <div class="summary-row">
+              <span data-i18n="fieldCoordinates">Field coordinates</span>
+              <strong id="summaryCoordinates">—</strong>
+            </div>
+          </div>
+
+          <div class="next-module" data-i18n="nextModule">
+            Next module: send these coordinates to Open-Meteo, retrieve hourly temperature,
+            relative humidity and rainfall, estimate wet hours, then feed the required values
+            into the Tomato TOMCAST risk calculation.
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-secondary" id="editLocationBtn" data-i18n="editLocation">
+              Edit location
+            </button>
+            <button class="btn btn-primary" id="restartBtn" data-i18n="restart">
+              Start again
+            </button>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Prototype only · No farmer data is uploaded or stored in this version.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
+  </script>
+
+  <script>
+    // -------------------------------------------------------------
+    // FasalSathi AI — Prototype state
+    // -------------------------------------------------------------
+    const state = {
+      lang: "en",
+      crop: "",
+      lat: null,
+      lon: null
+    };
+
+    // Open-Meteo FREE endpoint needs NO API key for prototyping/non-commercial use.
+    // Later weather integration can use:
+    // https://api.open-meteo.com/v1/forecast
+    //
+    // If you later buy a commercial Open-Meteo plan:
+    // const OPEN_METEO_API_KEY = "PASTE_COMMERCIAL_KEY_HERE";
+    // and use https://customer-api.open-meteo.com/v1/forecast?...&apikey=YOUR_KEY
+    const OPEN_METEO_API_KEY = "";
+
+    const translations = {
+      en: {
+        step2: "Step 2",
+        cropTitle: "Choose your crop",
+        cropSubtitle: "Select the crop grown in this field. Tomato is enabled in this prototype.",
+        cropLabel: "Crop",
+        selectCrop: "Select crop",
+        tomato: "Tomato — Available",
+        potato: "Potato — Coming soon",
+        wheat: "Wheat — Coming soon",
+        rice: "Rice — Coming soon",
+        maize: "Maize — Coming soon",
+        soybean: "Soybean — Coming soon",
+        onion: "Onion — Coming soon",
+        cropHint: "More crop-specific forecasting modules can be added later.",
+        prototypeNotice: "Prototype scope: only Tomato can continue to the field-location step.",
+        back: "Back",
+        continue: "Continue",
+        step3: "Step 3",
+        locationTitle: "Pin your field location",
+        locationSubtitle: "Use your current location or tap the map to place the pin exactly on the field.",
+        useCurrent: "◎ Use current location",
+        clearPin: "Clear pin",
+        latitude: "Latitude",
+        longitude: "Longitude",
+        mapHint: "Tap the map to place your field pin.",
+        locating: "Finding your current location…",
+        locationFound: "Current location found. You can move the pin by tapping the map.",
+        locationDenied: "Location access failed. Please allow location permission or pin the field manually on the map.",
+        pinPlaced: "Field pin placed. You can tap elsewhere to adjust it.",
+        pinCleared: "Pin cleared. Tap the map to choose the field again.",
+        saveField: "Save field location",
+        doneTitle: "Field setup complete",
+        doneSubtitle: "This prototype now has the crop and exact field coordinates needed for the weather layer.",
+        selectedLanguage: "Language",
+        selectedCrop: "Crop",
+        fieldCoordinates: "Field coordinates",
+        nextModule: "Next module: send these coordinates to Open-Meteo, retrieve hourly temperature, relative humidity and rainfall, estimate wet hours, then feed the required values into the Tomato TOMCAST risk calculation.",
+        editLocation: "Edit location",
+        restart: "Start again",
+        languageName: "English",
+        cropName: "Tomato"
+      },
+
+      hi: {
+        step2: "चरण 2",
+        cropTitle: "अपनी फसल चुनिए",
+        cropSubtitle: "इस खेत में उगाई गई फसल चुनें। इस प्रोटोटाइप में अभी केवल टमाटर उपलब्ध है।",
+        cropLabel: "फसल",
+        selectCrop: "फसल चुनें",
+        tomato: "टमाटर — उपलब्ध",
+        potato: "आलू — जल्द उपलब्ध",
+        wheat: "गेहूँ — जल्द उपलब्ध",
+        rice: "धान — जल्द उपलब्ध",
+        maize: "मक्का — जल्द उपलब्ध",
+        soybean: "सोयाबीन — जल्द उपलब्ध",
+        onion: "प्याज़ — जल्द उपलब्ध",
+        cropHint: "बाद में हर फसल के लिए अलग रोग-पूर्वानुमान मॉड्यूल जोड़े जा सकते हैं।",
+        prototypeNotice: "प्रोटोटाइप में अभी केवल टमाटर से आगे बढ़ सकते हैं।",
+        back: "पीछे",
+        continue: "आगे बढ़ें",
+        step3: "चरण 3",
+        locationTitle: "अपने खेत की सही जगह चुनें",
+        locationSubtitle: "वर्तमान स्थान का उपयोग करें या नक्शे पर टैप करके खेत पर पिन लगाएँ।",
+        useCurrent: "◎ वर्तमान स्थान का उपयोग करें",
+        clearPin: "पिन हटाएँ",
+        latitude: "अक्षांश",
+        longitude: "देशांतर",
+        mapHint: "खेत की जगह चुनने के लिए नक्शे पर टैप करें।",
+        locating: "आपका वर्तमान स्थान खोजा जा रहा है…",
+        locationFound: "वर्तमान स्थान मिल गया। नक्शे पर टैप करके पिन बदल सकते हैं।",
+        locationDenied: "स्थान नहीं मिल सका। लोकेशन अनुमति दें या नक्शे पर खेत की जगह स्वयं चुनें।",
+        pinPlaced: "खेत की जगह चुन ली गई है। बदलने के लिए नक्शे पर दूसरी जगह टैप करें।",
+        pinCleared: "पिन हटा दिया गया। खेत चुनने के लिए नक्शे पर टैप करें।",
+        saveField: "खेत की जगह सेव करें",
+        doneTitle: "खेत की शुरुआती सेटिंग पूरी हुई",
+        doneSubtitle: "अब प्रोटोटाइप के पास मौसम की जानकारी लेने के लिए फसल और खेत के सटीक निर्देशांक हैं।",
+        selectedLanguage: "भाषा",
+        selectedCrop: "फसल",
+        fieldCoordinates: "खेत के निर्देशांक",
+        nextModule: "अगला मॉड्यूल: इन निर्देशांकों से Open-Meteo पर प्रति घंटे का तापमान, सापेक्ष आर्द्रता और वर्षा लें, गीले घंटों का अनुमान लगाएँ और फिर Tomato TOMCAST रोग-जोखिम गणना में आवश्यक मान भेजें।",
+        editLocation: "जगह बदलें",
+        restart: "फिर से शुरू करें",
+        languageName: "हिंदी",
+        cropName: "टमाटर"
+      },
+
+      mr: {
+        step2: "टप्पा 2",
+        cropTitle: "तुमचे पीक निवडा",
+        cropSubtitle: "या शेतात घेतलेले पीक निवडा. या प्रोटोटाइपमध्ये सध्या फक्त टोमॅटो उपलब्ध आहे.",
+        cropLabel: "पीक",
+        selectCrop: "पीक निवडा",
+        tomato: "टोमॅटो — उपलब्ध",
+        potato: "बटाटा — लवकरच",
+        wheat: "गहू — लवकरच",
+        rice: "भात — लवकरच",
+        maize: "मका — लवकरच",
+        soybean: "सोयाबीन — लवकरच",
+        onion: "कांदा — लवकरच",
+        cropHint: "नंतर प्रत्येक पिकासाठी स्वतंत्र रोग-पूर्वानुमान मॉड्यूल जोडता येतील.",
+        prototypeNotice: "या प्रोटोटाइपमध्ये सध्या फक्त टोमॅटोसह पुढे जाता येईल.",
+        back: "मागे",
+        continue: "पुढे",
+        step3: "टप्पा 3",
+        locationTitle: "तुमच्या शेताचे अचूक ठिकाण निवडा",
+        locationSubtitle: "सध्याचे स्थान वापरा किंवा नकाशावर टॅप करून शेतावर पिन ठेवा.",
+        useCurrent: "◎ सध्याचे स्थान वापरा",
+        clearPin: "पिन काढा",
+        latitude: "अक्षांश",
+        longitude: "रेखांश",
+        mapHint: "शेताचे ठिकाण निवडण्यासाठी नकाशावर टॅप करा.",
+        locating: "तुमचे सध्याचे स्थान शोधत आहोत…",
+        locationFound: "सध्याचे स्थान मिळाले. नकाशावर टॅप करून पिन बदलू शकता.",
+        locationDenied: "स्थान मिळाले नाही. लोकेशन परवानगी द्या किंवा नकाशावर शेत स्वतः निवडा.",
+        pinPlaced: "शेताचे ठिकाण निवडले आहे. बदलण्यासाठी नकाशावर दुसऱ्या ठिकाणी टॅप करा.",
+        pinCleared: "पिन काढला. शेत निवडण्यासाठी नकाशावर टॅप करा.",
+        saveField: "शेताचे ठिकाण जतन करा",
+        doneTitle: "शेताची प्राथमिक सेटिंग पूर्ण",
+        doneSubtitle: "आता हवामान स्तरासाठी प्रोटोटाइपकडे पीक आणि शेताचे अचूक निर्देशांक आहेत.",
+        selectedLanguage: "भाषा",
+        selectedCrop: "पीक",
+        fieldCoordinates: "शेताचे निर्देशांक",
+        nextModule: "पुढील मॉड्यूल: हे निर्देशांक Open-Meteo कडे पाठवून तासागणिक तापमान, सापेक्ष आर्द्रता आणि पाऊस मिळवा, ओलसर तासांचा अंदाज करा आणि आवश्यक मूल्ये Tomato TOMCAST रोग-जोखीम गणनेत द्या.",
+        editLocation: "ठिकाण बदला",
+        restart: "पुन्हा सुरू करा",
+        languageName: "मराठी",
+        cropName: "टोमॅटो"
+      }
+    };
+
+    const screens = {
+      language: document.getElementById("screen-language"),
+      crop: document.getElementById("screen-crop"),
+      location: document.getElementById("screen-location"),
+      done: document.getElementById("screen-done")
+    };
+
+    const progressBar = document.getElementById("progressBar");
+    const cropSelect = document.getElementById("cropSelect");
+    const cropContinue = document.getElementById("cropContinue");
+    const currentLocationBtn = document.getElementById("currentLocationBtn");
+    const clearPinBtn = document.getElementById("clearPinBtn");
+    const saveLocationBtn = document.getElementById("saveLocationBtn");
+    const locationStatus = document.getElementById("locationStatus");
+    const latValue = document.getElementById("latValue");
+    const lonValue = document.getElementById("lonValue");
+
+    let map;
+    let fieldMarker;
+
+    function t(key) {
+      return translations[state.lang]?.[key] ?? translations.en[key] ?? key;
+    }
+
+    function showScreen(name) {
+      Object.values(screens).forEach(screen => screen.classList.remove("active"));
+      screens[name].classList.add("active");
+
+      const widths = { language: 25, crop: 50, location: 75, done: 100 };
+      progressBar.style.width = widths[name] + "%";
+
+      if (name === "location") {
+        ensureMap();
+        setTimeout(() => map.invalidateSize(), 100);
+      }
+
+      if (name === "done") {
+        fillSummary();
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function applyLanguage() {
+      document.documentElement.lang = state.lang;
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.dataset.i18n;
+        if (translations[state.lang][key]) {
+          el.textContent = translations[state.lang][key];
+        }
+      });
+
+      document.querySelectorAll("[data-i18n-option]").forEach(option => {
+        const key = option.dataset.i18nOption;
+        if (translations[state.lang][key]) {
+          option.textContent = translations[state.lang][key];
+        }
+      });
+
+      // Refresh dynamic status text after language changes.
+      if (state.lat !== null && state.lon !== null) {
+        locationStatus.textContent = t("pinPlaced");
+      } else {
+        locationStatus.textContent = t("mapHint");
+      }
+    }
+
+    document.querySelectorAll("[data-lang]").forEach(button => {
+      button.addEventListener("click", () => {
+        state.lang = button.dataset.lang;
+        applyLanguage();
+        showScreen("crop");
+      });
+    });
+
+    cropSelect.addEventListener("change", () => {
+      state.crop = cropSelect.value;
+      cropContinue.disabled = state.crop !== "tomato";
+    });
+
+    cropContinue.addEventListener("click", () => {
+      if (state.crop === "tomato") showScreen("location");
+    });
+
+    document.querySelectorAll("[data-back]").forEach(button => {
+      button.addEventListener("click", () => showScreen(button.dataset.back));
+    });
+
+    function ensureMap() {
+      if (map) return;
+
+      // Neutral India-wide starting view; user then pins the actual field.
+      map = L.map("map", { zoomControl: true }).setView([22.8, 79.0], 5);
+
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+
+      map.on("click", event => {
+        setFieldLocation(event.latlng.lat, event.latlng.lng, "manual");
+      });
+    }
+
+    function setFieldLocation(lat, lon, source = "manual") {
+      state.lat = Number(lat);
+      state.lon = Number(lon);
+
+      latValue.textContent = state.lat.toFixed(6);
+      lonValue.textContent = state.lon.toFixed(6);
+
+      if (fieldMarker) {
+        fieldMarker.setLatLng([state.lat, state.lon]);
+      } else {
+        fieldMarker = L.marker([state.lat, state.lon]).addTo(map);
+      }
+
+      fieldMarker
+        .bindPopup(
+          `<strong>${state.lang === "hi" ? "चुना हुआ खेत" :
+                     state.lang === "mr" ? "निवडलेले शेत" : "Selected field"}</strong><br>
+           ${state.lat.toFixed(6)}, ${state.lon.toFixed(6)}`
+        )
+        .openPopup();
+
+      saveLocationBtn.disabled = false;
+      locationStatus.classList.remove("error");
+      locationStatus.textContent = source === "gps" ? t("locationFound") : t("pinPlaced");
+    }
+
+    currentLocationBtn.addEventListener("click", () => {
+      ensureMap();
+      locationStatus.classList.remove("error");
+      locationStatus.textContent = t("locating");
+
+      if (!navigator.geolocation) {
+        locationStatus.classList.add("error");
+        locationStatus.textContent = t("locationDenied");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude } = position.coords;
+          setFieldLocation(latitude, longitude, "gps");
+          map.setView([latitude, longitude], 16);
+        },
+        () => {
+          locationStatus.classList.add("error");
+          locationStatus.textContent = t("locationDenied");
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 60000
+        }
+      );
+    });
+
+    clearPinBtn.addEventListener("click", () => {
+      state.lat = null;
+      state.lon = null;
+      latValue.textContent = "—";
+      lonValue.textContent = "—";
+      saveLocationBtn.disabled = true;
+
+      if (fieldMarker) {
+        map.removeLayer(fieldMarker);
+        fieldMarker = null;
+      }
+
+      locationStatus.classList.remove("error");
+      locationStatus.textContent = t("pinCleared");
+    });
+
+    saveLocationBtn.addEventListener("click", () => {
+      if (state.lat !== null && state.lon !== null) {
+        showScreen("done");
+      }
+    });
+
+    document.getElementById("editLocationBtn").addEventListener("click", () => {
+      showScreen("location");
+    });
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      state.crop = "";
+      state.lat = null;
+      state.lon = null;
+      cropSelect.value = "";
+      cropContinue.disabled = true;
+      saveLocationBtn.disabled = true;
+      latValue.textContent = "—";
+      lonValue.textContent = "—";
+
+      if (fieldMarker && map) {
+        map.removeLayer(fieldMarker);
+        fieldMarker = null;
+      }
+
+      // Keep the user's chosen language when restarting.
+      showScreen("language");
+    });
+
+    function fillSummary() {
+      document.getElementById("summaryLanguage").textContent = t("languageName");
+      document.getElementById("summaryCrop").textContent = t("cropName");
+      document.getElementById("summaryCoordinates").textContent =
+        `${state.lat.toFixed(6)}, ${state.lon.toFixed(6)}`;
+    }
+  </script>
+</body>
+</html>
