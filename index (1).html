@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1f7a4d" />
+  <title>FasalSathi AI — Farmer Prototype</title>
+  <meta name="description" content="FasalSathi farmer prototype with demo OTP, unified crop alerts, field registration, Open-Meteo weather inputs, and optional sensor readings." />
+
+
+
+  <style>
+    :root {
+      --green: #1f7a4d;
+      --green-dark: #155f3b;
+      --green-soft: #eef8f2;
+      --orange: #e58b2a;
+      --text: #18231d;
+      --muted: #6d7972;
+      --line: #dfe7e2;
+      --soft: #f7f9f8;
+      --white: #ffffff;
+      --danger: #b64040;
+      --shadow: 0 14px 40px rgba(20, 59, 38, 0.08);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #fbfcfb;
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans Devanagari", "Nirmala UI", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    button, select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 720px;
+      min-height: 100vh;
+      background: var(--white);
+      border-left: 1px solid #edf1ee;
+      border-right: 1px solid #edf1ee;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 22px 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 20px;
+    }
+
+    .prototype-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green-dark);
+      background: var(--green-soft);
+      padding: 7px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .progress-wrap {
+      padding: 0 22px 12px;
+    }
+
+    .progress {
+      height: 5px;
+      background: #edf1ee;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 25%;
+      background: var(--green);
+      border-radius: inherit;
+      transition: width 240ms ease;
+    }
+
+    main {
+      padding: 18px 22px 36px;
+    }
+
+    .screen {
+      display: none;
+      animation: fade 180ms ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      color: var(--green);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 6vw, 42px);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      margin: 0 0 12px;
+    }
+
+    h2 {
+      font-size: 23px;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .section-head {
+      margin-bottom: 26px;
+    }
+
+    .choice-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .choice {
+      width: 100%;
+      text-align: left;
+      background: var(--white);
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      cursor: pointer;
+      transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .choice:hover {
+      border-color: #a9cdb8;
+      box-shadow: 0 8px 24px rgba(31, 122, 77, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .choice.selected {
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .choice-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .choice-sub {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .arrow {
+      color: var(--green);
+      font-size: 20px;
+    }
+
+    .field {
+      margin-top: 24px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 9px;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    select {
+      width: 100%;
+      border: 1.5px solid var(--line);
+      background: var(--white);
+      color: var(--text);
+      padding: 16px 14px;
+      border-radius: 14px;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(31, 122, 77, 0.08);
+    }
+
+    .hint {
+      margin-top: 9px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .notice {
+      margin-top: 16px;
+      padding: 13px 14px;
+      background: #fff8ef;
+      border: 1px solid #f3d8b7;
+      border-radius: 13px;
+      color: #775126;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      gap: 11px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 48px;
+      border-radius: 14px;
+      padding: 0 17px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
+    }
+
+    .btn:active {
+      transform: scale(0.985);
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--green);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--green-dark);
+    }
+
+    .btn-primary:disabled {
+      background: #b9c9c0;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--soft);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .location-tools {
+      display: flex;
+      gap: 10px;
+      margin: 18px 0 12px;
+      flex-wrap: wrap;
+    }
+
+    .location-tools .btn {
+      min-height: 44px;
+    }
+
+    #map {
+      width: 100%;
+      height: 380px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: #e9efeb;
+    }
+
+    .coord-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .coord {
+      padding: 13px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+    }
+
+    .coord small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .coord strong {
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .status {
+      margin-top: 11px;
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .complete {
+      padding: 26px 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      background: var(--white);
+    }
+
+    .success-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+
+    .summary {
+      margin-top: 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+      align-items: flex-start;
+    }
+
+    .summary-row span:first-child {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary-row strong {
+      text-align: right;
+      font-size: 14px;
+    }
+
+    .next-module {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .footer-note {
+      margin-top: 28px;
+      text-align: center;
+      color: #8a958f;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .leaflet-control-attribution {
+      font-size: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .topbar {
+        padding-inline: 16px;
+      }
+
+      .progress-wrap,
+      main {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      #map {
+        height: 330px;
+      }
+
+      .coord-card {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column-reverse;
+      }
+
+      .actions .btn {
+        width: 100%;
+      }
+
+      .prototype-badge {
+        display: none;
+      }
+    }
+
+    [hidden] { display: none !important; }
+    html { color-scheme: light; }
+    body { font-size: 16px; }
+    h1 { font-size: clamp(28px, 5.8vw, 36px); line-height: 1.3; letter-spacing: -.025em; }
+    h2 { line-height: 1.4; font-size: 22px; }
+    h3 { margin: 0; font-size: 18px; line-height: 1.5; }
+    input, button, select { font: inherit; }
+    input { width: 100%; min-width: 0; border: 1.5px solid var(--line); padding: 15px; border-radius: 14px; background: white; color: var(--text); }
+    input:focus, select:focus { outline: 2px solid var(--green); outline-offset: 2px; }
+    button:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: .65; }
+    button, a, summary { -webkit-tap-highlight-color: transparent; }
+    .app { position: relative; }
+    .topbar { border-bottom: 1px solid #edf1ee; padding-bottom: 17px; flex-wrap: wrap; }
+    .brand { font-size: 18px; }
+    .prototype-badge { display: inline-block; font-size: 12px; padding: 5px 8px; }
+    .header-tools { display: flex; gap: 8px; align-items: center; }
+    #languageSwitch { width: auto; max-width: 130px; padding: 8px 24px 8px 10px; font-size: 14px; min-height: 42px; }
+    main { padding-top: 26px; }
+    body.signed-in main { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+    .section-head { margin-bottom: 24px; }
+    .eyebrow { font-size: 13px; line-height: 1.6; }
+    .hint, .status, .notice, .choice-sub, .next-module, .summary-row span:first-child { font-size: 14px; line-height: 1.6; }
+    p { color: #58685f; }
+    .progress-wrap { padding-top: 14px; }
+    .progress { height: 4px; }
+    .icon { width: 24px; height: 24px; display: inline-block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .icon-box { width: 54px; height: 54px; border-radius: 17px; background: var(--green-soft); color: var(--green); display: grid; place-items: center; flex-shrink: 0; }
+    .auth-symbol { margin: 6px 0 24px; width: 66px; height: 66px; border-radius: 21px; }
+    .auth-symbol .icon { width: 30px; height: 30px; }
+    .auth-card { padding: 4px 0 8px; }
+    .phone-input { display: flex; border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; align-items: center; }
+    .phone-input:focus-within { outline: 2px solid var(--green); outline-offset: 2px; }
+    .phone-input span { padding: 0 16px; font-weight: 700; border-right: 1px solid var(--line); }
+    .phone-input input { border: 0; border-radius: 0; outline: 0; letter-spacing: .05em; }
+    .phone-input input:focus { outline: 0; }
+    .full { width: 100%; }
+    .text-button { background: none; border: 0; color: var(--green-dark); font-weight: 700; padding: 10px 4px; cursor: pointer; min-height: 44px; }
+    .text-button:disabled { color: var(--muted); }
+    .code-input { letter-spacing: .28em; font-size: 26px; text-align: center; font-weight: 700; }
+    .demo-code { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; background: var(--green-soft); border: 1px solid #d0e8d9; border-radius: 16px; margin-top: 22px; flex-wrap: wrap; }
+    .demo-code strong { font-size: 24px; letter-spacing: .2em; display: block; margin-top: 4px; }
+    .demo-code small { display: block; color: var(--green-dark); font-size: 14px; }
+    .demo-note { font-size: 14px; color: #59675e; margin-top: 18px; line-height: 1.7; }
+    .error-text { color: var(--danger); min-height: 23px; margin: 8px 0 0; font-size: 14px; line-height: 1.6; }
+    .muted { color: var(--muted); }
+    .small { font-size: 14px; line-height: 1.6; }
+    .welcome-row { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+    .welcome-row .icon-box { margin-top: 6px; }
+    .welcome-row h1 { margin-bottom: 4px; }
+    .demo-banner { display: flex; gap: 12px; border: 1px solid #eddfc2; background: #fffbf2; padding: 15px 16px; border-radius: 15px; margin: 24px 0 18px; color: #75521d; }
+    .demo-banner p { color: #75521d; font-size: 14px; margin-top: 2px; }
+    .demo-banner strong { display: block; font-size: 15px; }
+    .location-strip { display: flex; gap: 12px; align-items: center; border: 1px solid var(--line); border-radius: 15px; padding: 15px; margin-bottom: 28px; }
+    .location-strip .icon { color: var(--green); }
+    .location-strip > div { flex: 1; }
+    .location-strip .text-button { max-width: 170px; text-align: right; }
+    .section-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 14px; }
+    .section-row h2 { margin: 0; }
+    .sample-pill { padding: 5px 9px; border: 1px solid var(--line); color: #58685f; font-size: 12px; border-radius: 8px; flex-shrink: 0; }
+    .switcher { display: flex; background: var(--soft); padding: 5px; border: 1px solid var(--line); border-radius: 13px; gap: 5px; margin-bottom: 17px; }
+    .switcher button { flex: 1; padding: 10px 8px; min-height: 44px; color: #58685f; border-radius: 9px; background: none; cursor: pointer; font-size: 15px; font-weight: 700; }
+    .switcher button[aria-pressed=true] { color: var(--green-dark); background: white; box-shadow: 0 1px 5px #17351f14; }
+    .alert-card { border: 1px solid var(--line); border-left: 4px solid #bf821d; border-radius: 16px; padding: 19px; margin-bottom: 14px; }
+    .alert-card.pest { border-left-color: #57785c; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .type-label { color: #806126; font-size: 13px; font-weight: 800; display: inline-flex; gap: 7px; align-items: center; }
+    .type-label .icon { width: 18px; height: 18px; }
+    .pest .type-label { color: #376644; }
+    .status-pill { font-size: 12px; font-weight: 700; padding: 5px 9px; border-radius: 8px; background: #fff4d9; color: #805b14; }
+    .status-pill.green { color: #316346; background: var(--green-soft); }
+    .alert-card h3 { margin-bottom: 7px; }
+    .alert-card p { font-size: 15px; }
+    .card-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 17px; padding-top: 13px; border-top: 1px solid #edf1ee; font-size: 13px; color: #617268; }
+    .card-footer .icon { width: 17px; height: 17px; }
+    .area-row { display: flex; align-items: flex-start; gap: 14px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+    .area-letter { display: grid; place-items: center; background: #fff3d9; color: #93671b; border: 1px solid #efdfbf; border-radius: 13px; height: 46px; width: 46px; flex-shrink: 0; font-weight: 800; }
+    .area-row > div:nth-child(2) { flex: 1; }
+    .area-row p { font-size: 14px; }
+    .area-distance { font-size: 14px; font-weight: 700; white-space: nowrap; margin-top: 4px; }
+    .empty-state { text-align: center; border: 1px dashed #c7dbce; border-radius: 20px; padding: 38px 24px; margin-top: 26px; background: #fcfefc; }
+    .empty-state .icon-box { margin: 0 auto 20px; width: 64px; height: 64px; }
+    .empty-state p { max-width: 380px; margin: 8px auto 24px; }
+    .empty-state .btn { padding: 12px 22px; }
+    .field-card { border: 1px solid var(--line); border-radius: 18px; padding: 19px; margin-bottom: 16px; }
+    .field-card-head { display: flex; align-items: center; gap: 13px; margin-bottom: 18px; }
+    .field-card-head h3 { overflow-wrap: anywhere; }
+    .field-card-head p { font-size: 14px; }
+    .field-card .btn { min-height: 44px; width: 100%; }
+    .field-meta { padding: 12px 14px; background: var(--soft); border-radius: 12px; margin-bottom: 16px; font-size: 14px; line-height: 1.7; }
+    .support-card { border: 1px solid var(--line); border-radius: 20px; padding: 24px; }
+    .support-card > .icon-box { margin-bottom: 20px; }
+    .support-card h2 { margin: 12px 0 9px; }
+    .support-card .btn { margin-top: 24px; }
+    .support-card .btn:disabled { color: #5b6d60; background: #edf2ee; opacity: 1; }
+    .account-card { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 23px; }
+    .account-card .summary-row { padding: 12px 0; }
+    .account-card .summary-row strong { overflow-wrap: anywhere; }
+    .bottom-nav { position: fixed; z-index: 1200; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 720px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border-top: 1px solid #dce7df; background: #fff; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 24px #15301d06; }
+    .nav-item { color: #68786d; background: transparent; border-radius: 13px; min-height: 62px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; padding: 7px 5px; font-size: 14px; font-weight: 600; }
+    .nav-item[aria-current=page] { color: var(--green-dark); background: var(--green-soft); }
+    .nav-item[aria-current=page] .icon { stroke-width: 2.2; }
+    .toast { position: fixed; left: 50%; bottom: calc(98px + env(safe-area-inset-bottom)); transform: translateX(-50%); max-width: 640px; width: calc(100% - 40px); background: #1b4930; color: #fff; border-radius: 12px; padding: 14px 18px; z-index: 1500; font-size: 14px; box-shadow: var(--shadow); }
+    .manual-coords { padding: 15px; border: 1px solid var(--line); border-radius: 14px; margin-top: 16px; }
+    summary { cursor: pointer; color: var(--green-dark); font-size: 14px; font-weight: 700; line-height: 1.6; }
+    .manual-coords .field { margin-top: 14px; }
+    .manual-coords .btn { margin-top: 16px; }
+    .complete { box-shadow: none; }
+    .next-module { margin-top: 20px; }
+    #map:empty { display: grid; place-items: center; background: #f1f5f2; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+    @media (max-width: 520px) {
+      .topbar { gap: 8px; padding-top: 16px; }
+      .brand { font-size: 17px; gap: 8px; }
+      .brand-mark { width: 34px; height: 34px; }
+      #languageSwitch { max-width: 104px; font-size: 13px; padding-right: 8px; }
+      .prototype-badge { font-size: 11px; }
+      .header-tools { gap: 5px; }
+      .demo-banner { margin-top: 22px; }
+      .location-strip { flex-wrap: wrap; }
+      .section-row h2 { font-size: 21px; }
+      .actions { flex-direction: row; }
+      .actions .btn { width: auto; flex: 1; padding: 12px; }
+      .manual-coords .coord-card { grid-template-columns: 1fr; }
+      .bottom-nav { padding-inline: 8px; }
+      .area-row { gap: 10px; flex-wrap: wrap; }
+      .area-row > div:nth-child(2) { min-width: 150px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+
+    textarea { width: 100%; resize: vertical; min-height: 96px; border: 1.5px solid var(--line); padding: 14px; border-radius: 14px; background: white; color: var(--text); font: inherit; line-height: 1.55; }
+    textarea:focus { outline: 2px solid var(--green); outline-offset: 2px; }
+    .feed-heading { margin: 6px 0 13px; }
+    .hotspot-block { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .selected-location-card { display: flex; align-items: center; gap: 13px; padding: 15px; border: 1px solid var(--line); border-radius: 15px; background: var(--soft); margin-bottom: 24px; }
+    .selected-location-card > div { flex: 1; min-width: 0; }
+    .selected-location-card .icon { color: var(--green); }
+    .weather-card { margin-top: 22px; padding: 19px; border: 1px solid #cfe1d5; border-radius: 18px; background: #fbfefc; }
+    .weather-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .weather-head h2 { margin: 0; }
+    .weather-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 17px; }
+    .weather-metric { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: white; }
+    .weather-metric:last-child { grid-column: 1 / -1; }
+    .weather-metric small { color: var(--muted); display: block; line-height: 1.4; margin-bottom: 5px; }
+    .weather-metric strong { font-size: 18px; }
+    .weather-note { margin-top: 14px; color: #58685f; font-size: 13px; line-height: 1.6; }
+    .optional-card { margin-top: 24px; padding: 18px; border: 1px solid var(--line); border-radius: 17px; background: #fcfdfc; }
+    .optional-card > summary { font-size: 17px; color: var(--text); }
+    .optional-card > p { margin-top: 9px; }
+    .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 17px; }
+    .check-card { display: flex; align-items: center; gap: 10px; margin: 0; padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: white; font-weight: 650; line-height: 1.4; }
+    .check-card input { width: 20px; height: 20px; margin: 0; accent-color: var(--green); flex-shrink: 0; }
+    .subsection-title { margin: 24px 0 4px; }
+    .file-name { color: var(--green-dark); font-size: 14px; font-weight: 700; margin-top: 10px; overflow-wrap: anywhere; }
+    .camera-preview { display: block; width: 100%; max-height: 250px; object-fit: cover; border-radius: 14px; margin-top: 12px; border: 1px solid var(--line); }
+    .field-meta-row { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0 15px; }
+    @media (max-width: 520px) { .form-grid, .checkbox-grid, .weather-grid { grid-template-columns: 1fr; } .weather-metric:last-child { grid-column: auto; } .selected-location-card { flex-wrap: wrap; } .selected-location-card .text-button { margin-left: 34px; } }
+
+  </style>
+</head>
+
+<body><svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></symbol>
+<symbol id="i-fields" viewBox="0 0 24 24"><path d="m3 7 7-3 11 3v13H3Z M3 12h18 M8 12l-5 8 M14 12l-5 8 M20 12l-5 8"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><path d="M4 14v-3a8 8 0 0 1 16 0v7a3 3 0 0 1-3 3h-4 M4 11H3v7h3v-7Z M20 11h1v7h-3v-7Z"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4 M11 18h2"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="12" rx="3"/><path d="M8 10V6a4 4 0 0 1 8 0v4 M12 15v3"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8 M9 20a3 3 0 0 0 6 0"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 3C10 2 3 6 4 13c1 7 10 9 14 1 2-4 2-8 2-11Z M3 22l12-12"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6 M12 7v.1"/></symbol>
+<symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="15" rx="5"/><path d="m9 3 1 3 m5-3-1 3 M3 9l4 2 M3 15h4 M3 21l5-3 M21 9l-4 2 M21 15h-4 M21 21l-5-3 M12 7v13"/></symbol>
+</defs></svg><div class="app"><header class="topbar"><div class="brand"><div class="brand-mark">🌱</div><div>FasalSathi AI</div></div><div class="header-tools"><span class="prototype-badge" data-i18n="demoBadge">Demo v3</span><label for="languageSwitch" class="sr-only" data-i18n="selectedLanguage">Language</label><select id="languageSwitch" hidden><option value="hi">हिंदी</option><option value="mr">मराठी</option><option value="en">English</option></select></div></header><div class="progress-wrap" id="setupProgress"><div class="progress" role="progressbar" id="progressTrack" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33"><span id="progressBar"></span></div></div><main id="mainContent"><section class="screen active" id="screen-language">
+        <div class="section-head">
+          <div class="eyebrow">FasalSathi AI</div>
+          <h1>भाषा चुनिए</h1>
+          <p>अपनी पसंद की भाषा चुनें। / Choose your preferred language.</p>
+        </div>
+
+        <div class="choice-grid">
+          <button class="choice" data-lang="hi">
+            <div>
+              <div class="choice-title">हिंदी</div>
+              <div class="choice-sub">Hindi</div>
+            </div>
+            <div class="arrow">→</div>
+          </button>
+
+          <button class="choice" data-lang="mr">
+            <div>
+              <div class="choice-title">मराठी</div>
+              <div class="choice-sub">Marathi</div>
+            </div>
+            <div class="arrow">→</div>
+          </button>
+
+          <button class="choice" data-lang="en">
+            <div>
+              <div class="choice-title">English</div>
+              <div class="choice-sub">English</div>
+            </div>
+            <div class="arrow">→</div>
+          </button>
+        </div>
+      </section><section class="screen" id="screen-login" aria-labelledby="loginTitle"><div class="icon-box auth-symbol"><svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg></div><div class="section-head"><div class="eyebrow" data-i18n="loginEyebrow">MOBILE SIGN-IN</div><h1 id="loginTitle" data-i18n="loginTitle">Sign in or register</h1><p data-i18n="loginSubtitle">Use your mobile number to get started. Your account is created on your first visit.</p></div><form id="loginForm" class="auth-card" novalidate><label for="mobileNumber" data-i18n="mobileNumber">Mobile number</label><div class="phone-input"><span aria-label="India calling code">+91</span><input id="mobileNumber" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="18" placeholder="98765 43210" aria-describedby="phoneError demoAuthNote" required /></div><p id="phoneError" class="error-text" role="alert"></p><button type="submit" class="btn btn-primary full" data-i18n="sendOtp">Get demo OTP</button><div class="notice" id="demoAuthNote" data-i18n="demoAuthNote">Demo sign-in: no SMS is sent. Use any valid-format Indian mobile number to try the flow.</div><p class="demo-note" data-i18n="dataNotice">Demo account and field details stay in this browser. Please use a sample number.</p></form><button class="text-button" data-back="language" data-i18n="changeLanguage">Change language</button></section><section class="screen" id="screen-otp" aria-labelledby="otpTitle"><div class="icon-box auth-symbol"><svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg></div><div class="section-head"><div class="eyebrow" data-i18n="verifyEyebrow">MOBILE VERIFICATION</div><h1 id="otpTitle" data-i18n="otpTitle">Enter the OTP</h1><p><span data-i18n="otpSubtitle">Demo verification for</span> <strong id="otpPhone"></strong></p><button type="button" class="text-button" id="changeNumber" data-i18n="changeNumber">Change number</button></div><form id="otpForm" novalidate><label for="otpCode" data-i18n="otpLabel">6-digit verification code</label><input id="otpCode" class="code-input" inputmode="numeric" autocomplete="one-time-code" type="text" maxlength="6" placeholder="------" aria-describedby="otpError" required /><p class="error-text" id="otpError" role="alert"></p><button type="submit" class="btn btn-primary full" id="verifyOtpBtn" data-i18n="verifyOtp">Verify and continue</button></form><div class="demo-code"><div><small data-i18n="demoCodeLabel">Demo code · no SMS is sent</small><strong>123456</strong></div><button type="button" class="text-button" id="fillDemoCode" data-i18n="fillCode">Use this code</button></div><p class="demo-note" data-i18n="otpExpiryNote">This demo code expires after 5 minutes. This is a preview, not secure phone authentication.</p><button type="button" class="text-button" id="resendOtp" disabled></button></section><section class="screen" id="screen-home">
+        <div class="welcome-row">
+          <div><div class="eyebrow" data-i18n="homeEyebrow">YOUR FARM COMPANION</div><h1 data-i18n="homeTitle">Hello, farmer!</h1><p data-i18n="homeSubtitle">Keep an eye on your crops and your area.</p></div>
+          <div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-leaf"></use></svg></div>
+        </div>
+        <div class="demo-banner"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg><div><strong data-i18n="demoAlertsTitle">Sample alerts, not live reports</strong><p data-i18n="demoAlertsText">These examples show how nearby updates will look. Local monitoring is not connected yet.</p></div></div>
+        <div class="location-strip"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><div><strong id="homeLocationTitle"></strong><p class="small" id="homeLocationHint"></p></div><button class="text-button" data-route="fields" data-i18n="viewFields">View fields</button></div>
+        <div class="section-row"><h2 data-i18n="nearbyUpdates">Alerts and hotspot areas</h2><span class="sample-pill" data-i18n="sampleData">Sample data</span></div>
+        <div id="homeUpdates">
+          <div class="feed-heading"><h3 data-i18n="activeAlerts">Available alerts</h3></div>
+          <article class="alert-card"><div class="card-top"><span class="type-label"><svg class="icon" aria-hidden="true"><use href="#i-leaf"></use></svg><span data-i18n="diseaseWatch">DISEASE WATCH</span></span><span class="status-pill" data-i18n="ongoingDemo">Ongoing · sample</span></div><h3 data-i18n="alertOneTitle">Tomato early blight</h3><p data-i18n="alertOneText">Example of a disease alert that could appear when nearby reports are available.</p><div class="card-footer"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><span data-i18n="areaAInfo">Sample area A · 3 km away</span></div></article>
+          <article class="alert-card pest"><div class="card-top"><span class="type-label"><svg class="icon" aria-hidden="true"><use href="#i-bug"></use></svg><span data-i18n="pestWatch">PEST WATCH</span></span><span class="status-pill green" data-i18n="recentDemo">Recent · sample</span></div><h3 data-i18n="alertTwoTitle">Whitefly activity</h3><p data-i18n="alertTwoText">Example of a pest update. The location and distance shown are for demonstration only.</p><div class="card-footer"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><span data-i18n="areaBInfo">Sample area B · 6 km away</span></div></article>
+          <div class="hotspot-block">
+            <div class="section-row"><h3 data-i18n="hotspotAreas">Hotspot areas</h3><span class="sample-pill" data-i18n="sampleData">Sample data</span></div>
+            <p class="small" data-i18n="hotspotIntro">Illustrative areas only. These are not real outbreak locations.</p>
+            <div class="area-row"><div class="area-letter">A</div><div><h3 data-i18n="areaA">Sample area A</h3><p data-i18n="alertOneTitle">Tomato early blight</p><span class="status-pill" data-i18n="diseaseCluster">Disease cluster · sample</span></div><span class="area-distance" data-i18n="distanceA">3 km*</span></div>
+            <div class="area-row"><div class="area-letter">B</div><div><h3 data-i18n="areaB">Sample area B</h3><p data-i18n="alertTwoTitle">Whitefly activity</p><span class="status-pill green" data-i18n="pestCluster">Pest cluster · sample</span></div><span class="area-distance" data-i18n="distanceB">6 km*</span></div>
+            <p class="demo-note" data-i18n="distanceDisclaimer">*Sample distances are not calculated from your field.</p>
+          </div>
+        </div>
+      </section><section class="screen" id="screen-fields"><div class="section-head"><div class="eyebrow" data-i18n="fieldsEyebrow">CROP & LOCATION</div><h1 data-i18n="fieldsTitle">My fields</h1><p data-i18n="fieldsSubtitle">Keep your fields together, with a crop and location for each.</p></div><div id="fieldList"></div><div id="fieldsEmpty" class="empty-state"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-fields"></use></svg></div><h2 data-i18n="noFields">Add your first field</h2><p data-i18n="noFieldsText">Choose the field location first, then add crop details.</p><button type="button" class="btn btn-primary" data-add-field data-i18n="addField">+ Add field</button></div><button type="button" class="btn btn-primary full" id="addAnotherField" data-add-field data-i18n="addField" hidden>+ Add field</button><p class="demo-note" data-i18n="localOnly">Saved on this device only. Cloud sync is not available yet.</p></section><section class="screen" id="screen-support"><div class="section-head"><div class="eyebrow" data-i18n="supportEyebrow">A HELPING HAND</div><h1 data-i18n="supportTitle">Support</h1><p data-i18n="supportSubtitle">Guidance from your local agricultural extension team.</p></div><div class="support-card"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></div><span class="sample-pill" data-i18n="comingSoon">Coming soon</span><h2 data-i18n="extensionTitle">Extension staff support</h2><p data-i18n="extensionText">This is where you will be able to reach your local extension staff for help with crop concerns.</p><button type="button" class="btn btn-secondary full" disabled data-i18n="contactSupport">Contact support</button><p class="demo-note" data-i18n="supportNotConnected">Calling and messaging are not connected in this prototype.</p></div><div class="account-card"><h2 data-i18n="demoAccount">Your demo account</h2><div class="summary-row"><span data-i18n="farmerId">Farmer ID</span><strong id="accountId"></strong></div><div class="summary-row"><span data-i18n="mobileNumber">Mobile number</span><strong id="accountPhone"></strong></div><button type="button" class="text-button" id="signOut" data-i18n="signOut">Sign out</button><p class="small" data-i18n="accountNote">Signing out keeps the fields saved in this browser for your next demo login.</p></div></section><section class="screen" id="screen-crop">
+        <div class="section-head"><div class="eyebrow" data-i18n="fieldStepDetails">ADD FIELD · 2 OF 2</div><h1 data-i18n="fieldDetailsTitle">Crop and field details</h1><p data-i18n="fieldDetailsSubtitle">Crop is required. Add the other details only if they are already known or available.</p></div>
+        <div class="selected-location-card"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><div><strong data-i18n="selectedLocation">Selected field location</strong><p id="detailsCoordinates" class="small">—</p></div><button type="button" class="text-button" id="changeFieldLocation" data-i18n="editLocation">Edit location</button></div>
+        <form id="fieldDetailsForm" novalidate>
+          <div class="field"><label for="fieldName" data-i18n="fieldName">Field name (optional)</label><input id="fieldName" type="text" maxlength="40" autocomplete="off" data-i18n-placeholder="fieldNamePlaceholder" placeholder="e.g. North field" /></div>
+          <div class="field"><label for="cropSelect" data-i18n="cropLabel">Crop</label><select id="cropSelect" required><option value="" data-i18n-option="selectCrop">Select crop</option><option value="tomato" data-i18n-option="tomato">Tomato — Available</option><option value="potato" disabled data-i18n-option="potato">Potato — Coming soon</option><option value="wheat" disabled data-i18n-option="wheat">Wheat — Coming soon</option><option value="rice" disabled data-i18n-option="rice">Rice — Coming soon</option><option value="maize" disabled data-i18n-option="maize">Maize — Coming soon</option><option value="soybean" disabled data-i18n-option="soybean">Soybean — Coming soon</option><option value="onion" disabled data-i18n-option="onion">Onion — Coming soon</option></select><div class="hint" data-i18n="cropHint">Other crops will be available later.</div></div>
+          <div class="form-grid"><div class="field"><label for="plantStage" data-i18n="plantStage">Current plant stage (optional)</label><select id="plantStage"><option value="" data-i18n-option="notProvided">Not provided</option><option value="not_planted" data-i18n-option="stageNotPlanted">Not planted yet</option><option value="seedling" data-i18n-option="stageSeedling">Seedling / nursery</option><option value="vegetative" data-i18n-option="stageVegetative">Vegetative growth</option><option value="flowering" data-i18n-option="stageFlowering">Flowering</option><option value="fruiting" data-i18n-option="stageFruiting">Fruiting</option><option value="harvest" data-i18n-option="stageHarvest">Harvest stage</option><option value="unknown" data-i18n-option="stageUnknown">Not sure</option></select></div><div class="field"><label for="plantingDate" data-i18n="plantingDate">Sowing/transplanting date (optional)</label><input id="plantingDate" type="date" /></div></div>
+          <div class="form-grid"><div class="field"><label for="soilType" data-i18n="soilType">Soil type (optional)</label><select id="soilType"><option value="" data-i18n-option="notProvided">Not provided</option><option value="loamy" data-i18n-option="soilLoamy">Loamy</option><option value="clay" data-i18n-option="soilClay">Clay</option><option value="sandy" data-i18n-option="soilSandy">Sandy</option><option value="black" data-i18n-option="soilBlack">Black soil</option><option value="red" data-i18n-option="soilRed">Red soil</option><option value="other" data-i18n-option="other">Other</option></select></div><div class="field"><label for="irrigationMethod" data-i18n="irrigationMethod">Irrigation method (optional)</label><select id="irrigationMethod"><option value="" data-i18n-option="notProvided">Not provided</option><option value="rainfed" data-i18n-option="irrigationRainfed">Rain-fed</option><option value="drip" data-i18n-option="irrigationDrip">Drip</option><option value="sprinkler" data-i18n-option="irrigationSprinkler">Sprinkler</option><option value="furrow" data-i18n-option="irrigationFurrow">Furrow/flood</option><option value="other" data-i18n-option="other">Other</option></select></div></div>
+          <div class="field"><label for="historyNotes" data-i18n="historyLabel">Known pest or disease history (optional)</label><textarea id="historyNotes" maxlength="400" rows="4" data-i18n-placeholder="historyPlaceholder" placeholder="For example: whitefly last month, early blight last season"></textarea><div class="hint" data-i18n="historyHint">Useful when crops are already growing or the field has repeated problems.</div></div>
+          <details class="optional-card" id="deviceDetails"><summary data-i18n="sensorCameraTitle">Sensors and camera (optional)</summary><p class="small" data-i18n="sensorCameraSummary">Choose any equipment already installed and add the first available reading.</p><div class="checkbox-grid"><label class="check-card"><input id="hasLeafWetnessSensor" type="checkbox" /><span data-i18n="leafWetnessSensor">Leaf-wetness sensor</span></label><label class="check-card"><input id="hasClimateSensor" type="checkbox" /><span data-i18n="climateSensor">Temperature/humidity sensor</span></label><label class="check-card"><input id="hasSoilMoistureSensor" type="checkbox" /><span data-i18n="soilMoistureSensor">Soil-moisture sensor</span></label><label class="check-card"><input id="hasFieldCamera" type="checkbox" /><span data-i18n="fieldCamera">Field camera</span></label></div>
+            <div id="sensorReadings" hidden><h3 class="subsection-title" data-i18n="firstReadingsTitle">First available readings</h3><p class="small" data-i18n="deviceReadingHint">Leave any reading blank if your device does not provide it.</p><div class="form-grid"><div class="field"><label for="sensorObservedAt" data-i18n="observedAt">Reading time (optional)</label><input id="sensorObservedAt" type="datetime-local" /></div><div class="field"><label for="manualTemp" data-i18n="manualTemp">Air temperature °C</label><input id="manualTemp" type="number" inputmode="decimal" min="-20" max="65" step="0.1" /></div><div class="field"><label for="manualHumidity" data-i18n="manualHumidity">Relative humidity %</label><input id="manualHumidity" type="number" inputmode="decimal" min="0" max="100" step="0.1" /></div><div class="field"><label for="manualLeafWetHours" data-i18n="leafWetHours">Measured wet hours in last 24 h</label><input id="manualLeafWetHours" type="number" inputmode="decimal" min="0" max="24" step="0.1" /></div><div class="field"><label for="manualSoilMoisture" data-i18n="soilMoistureReading">Soil moisture %</label><input id="manualSoilMoisture" type="number" inputmode="decimal" min="0" max="100" step="0.1" /></div></div></div>
+            <div id="cameraBlock" hidden><div class="field"><label for="cameraInput" data-i18n="cameraImage">Current field/crop image (optional)</label><input id="cameraInput" type="file" accept="image/*" capture="environment" /><div class="hint" data-i18n="cameraHint">Preview only in this prototype; the image is not uploaded or saved.</div><div id="cameraFileName" class="file-name"></div><img id="cameraPreview" class="camera-preview" alt="Selected field preview" hidden /></div></div>
+          </details>
+          <div class="field"><label for="otherNotes" data-i18n="otherObservations">Other useful observations (optional)</label><textarea id="otherNotes" maxlength="400" rows="3" data-i18n-placeholder="otherObservationsHint" placeholder="For example: recent waterlogging, shade, unusual leaf colour"></textarea></div>
+          <p id="fieldDetailsError" class="error-text" role="alert"></p>
+          <div class="notice" data-i18n="prototypeNotice">Only Tomato is available in this prototype.</div>
+          <div class="actions"><button type="button" class="btn btn-secondary" data-back="location" data-i18n="back">Back</button><button type="submit" class="btn btn-primary" id="cropContinue" disabled data-i18n="saveField">Save field</button></div>
+        </form>
+      </section><section class="screen" id="screen-location">
+        <div class="section-head"><div class="eyebrow" data-i18n="fieldStepLocation">ADD FIELD · 1 OF 2</div><h1 data-i18n="locationTitle">Pin your field location</h1><p data-i18n="locationFirstSubtitle">Choose the exact field first. We will use its coordinates to load hourly weather for the disease-risk model.</p></div>
+        <div class="location-tools"><button type="button" class="btn btn-secondary" id="currentLocationBtn" data-i18n="useCurrent">◎ Use current location</button><button type="button" class="btn btn-secondary" id="clearPinBtn" data-i18n="clearPin">Clear pin</button></div>
+        <div id="map" data-i18n-aria="mapLabel" aria-label="Field location map"></div><p id="mapError" class="error-text" hidden data-i18n="mapLoadError"></p>
+        <div class="coord-card"><div class="coord"><small data-i18n="latitude">Latitude</small><strong id="latValue">—</strong></div><div class="coord"><small data-i18n="longitude">Longitude</small><strong id="lonValue">—</strong></div></div>
+        <div class="status" role="status" aria-live="polite" id="locationStatus" data-i18n="mapHint">Tap the map to place your field pin.</div>
+        <details class="manual-coords"><summary data-i18n="manualCoordinates">Enter coordinates instead</summary><div class="coord-card"><div class="field"><label for="manualLat" data-i18n="latitude">Latitude</label><input id="manualLat" type="number" inputmode="decimal" min="-90" max="90" step="any" placeholder="23.5200" /></div><div class="field"><label for="manualLon" data-i18n="longitude">Longitude</label><input id="manualLon" type="number" inputmode="decimal" min="-180" max="180" step="any" placeholder="77.8100" /></div></div><button type="button" class="btn btn-secondary" id="applyCoordinates" data-i18n="applyCoordinates">Use these coordinates</button><p id="coordinateError" class="error-text" role="alert"></p></details>
+        <section class="weather-card" id="weatherCard" hidden aria-labelledby="weatherTitle"><div class="weather-head"><div><div class="eyebrow" data-i18n="openMeteoWeather">OPEN-METEO WEATHER</div><h2 id="weatherTitle" data-i18n="weatherTitle">Weather inputs for TOMCAST</h2></div><span class="status-pill" id="weatherStatusPill"></span></div><p class="small" id="weatherStatusText" role="status" aria-live="polite"></p><div class="weather-grid" id="weatherMetrics" hidden><div class="weather-metric"><small data-i18n="currentTemperature">Current temperature</small><strong id="weatherTemp">—</strong></div><div class="weather-metric"><small data-i18n="relativeHumidity">Current humidity</small><strong id="weatherHumidity">—</strong></div><div class="weather-metric"><small data-i18n="rainNext24">Rain forecast · 24 h</small><strong id="weatherRain">—</strong></div><div class="weather-metric"><small data-i18n="estimatedWetHours">Estimated wet hours · 24 h</small><strong id="weatherWetHours">—</strong></div><div class="weather-metric"><small data-i18n="wetPeriodTemperature">Avg. temperature in wet hours</small><strong id="weatherWetTemp">—</strong></div></div><p class="weather-note" data-i18n="weatherProxyNote">Estimated wet hours use hourly relative humidity ≥90%. This is a weather proxy, not a direct leaf-wetness measurement; a field sensor can provide better data.</p><button type="button" class="text-button" id="retryWeather" data-i18n="weatherRetry">Retry weather sync</button></section>
+        <div class="actions"><button type="button" class="btn btn-secondary" data-back="fields" data-i18n="back">Back</button><button type="button" class="btn btn-primary" id="saveLocationBtn" disabled data-i18n="continueDetails">Continue to crop details</button></div>
+      </section><section class="screen" id="screen-done"><div class="complete"><div class="success-icon">✓</div><h2 data-i18n="doneTitle">Your field is ready</h2><p data-i18n="doneSubtitle">Location, crop details and available readings have been saved on this device.</p><div class="summary"><div class="summary-row"><span data-i18n="summaryFieldName">Field</span><strong id="summaryFieldName">—</strong></div><div class="summary-row"><span data-i18n="selectedCrop">Crop</span><strong id="summaryCrop">—</strong></div><div class="summary-row"><span data-i18n="summaryStage">Plant stage</span><strong id="summaryStage">—</strong></div><div class="summary-row"><span data-i18n="fieldCoordinates">Field coordinates</span><strong id="summaryCoordinates">—</strong></div><div class="summary-row"><span data-i18n="summaryWeather">Weather input</span><strong id="summaryWeather">—</strong></div><div class="summary-row"><span data-i18n="summaryInputs">Optional devices</span><strong id="summaryInputs">—</strong></div></div><div class="next-module" data-i18n="nextModuleV3">The field is ready for the future Tomato TOMCAST risk module. Weather-based wetness remains an estimate unless a leaf-wetness sensor is connected.</div><div class="actions"><button type="button" class="btn btn-secondary" id="editLocationBtn" data-i18n="editLocation">Edit location</button><button type="button" class="btn btn-secondary" id="editDetailsBtn" data-i18n="editDetails">Edit details</button><button type="button" class="btn btn-primary" id="backToFields" data-i18n="backToFields">Back to fields</button></div></div><div class="footer-note" data-i18n="localOnly">Saved on this device only.</div></section></main><nav id="bottomNav" class="bottom-nav" hidden aria-label="Main navigation" data-i18n-aria="mainNavigation"><button type="button" class="nav-item" data-route="home"><svg class="icon" aria-hidden="true"><use href="#i-home"></use></svg><span data-i18n="navHome">Home</span></button><button type="button" class="nav-item" data-route="fields"><svg class="icon" aria-hidden="true"><use href="#i-fields"></use></svg><span data-i18n="navFields">Fields</span></button><button type="button" class="nav-item" data-route="support"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg><span data-i18n="navSupport">Support</span></button></nav><div id="toast" class="toast" role="status" aria-live="polite" hidden></div></div><noscript>This prototype needs JavaScript enabled in your browser.</noscript><script>
+const translations = {
+      en: {
+        step2: "Step 2",
+        cropTitle: "Choose your crop",
+        cropSubtitle: "Select the crop grown in this field. Tomato is enabled in this prototype.",
+        cropLabel: "Crop",
+        selectCrop: "Select crop",
+        tomato: "Tomato — Available",
+        potato: "Potato — Coming soon",
+        wheat: "Wheat — Coming soon",
+        rice: "Rice — Coming soon",
+        maize: "Maize — Coming soon",
+        soybean: "Soybean — Coming soon",
+        onion: "Onion — Coming soon",
+        cropHint: "More crop-specific forecasting modules can be added later.",
+        prototypeNotice: "Prototype scope: only Tomato can continue to the field-location step.",
+        back: "Back",
+        continue: "Continue",
+        step3: "Step 3",
+        locationTitle: "Pin your field location",
+        locationSubtitle: "Use your current location or tap the map to place the pin exactly on the field.",
+        useCurrent: "◎ Use current location",
+        clearPin: "Clear pin",
+        latitude: "Latitude",
+        longitude: "Longitude",
+        mapHint: "Tap the map to place your field pin.",
+        locating: "Finding your current location…",
+        locationFound: "Current location found. You can move the pin by tapping the map.",
+        locationDenied: "Location access failed. Please allow location permission or pin the field manually on the map.",
+        pinPlaced: "Field pin placed. You can tap elsewhere to adjust it.",
+        pinCleared: "Pin cleared. Tap the map to choose the field again.",
+        saveField: "Save field location",
+        doneTitle: "Field setup complete",
+        doneSubtitle: "This prototype now has the crop and exact field coordinates needed for the weather layer.",
+        selectedLanguage: "Language",
+        selectedCrop: "Crop",
+        fieldCoordinates: "Field coordinates",
+        nextModule: "Next module: send these coordinates to Open-Meteo, retrieve hourly temperature, relative humidity and rainfall, estimate wet hours, then feed the required values into the Tomato TOMCAST risk calculation.",
+        editLocation: "Edit location",
+        restart: "Start again",
+        languageName: "English",
+        cropName: "Tomato"
+      },
+
+      hi: {
+        step2: "चरण 2",
+        cropTitle: "अपनी फसल चुनिए",
+        cropSubtitle: "इस खेत में उगाई गई फसल चुनें। इस प्रोटोटाइप में अभी केवल टमाटर उपलब्ध है।",
+        cropLabel: "फसल",
+        selectCrop: "फसल चुनें",
+        tomato: "टमाटर — उपलब्ध",
+        potato: "आलू — जल्द उपलब्ध",
+        wheat: "गेहूँ — जल्द उपलब्ध",
+        rice: "धान — जल्द उपलब्ध",
+        maize: "मक्का — जल्द उपलब्ध",
+        soybean: "सोयाबीन — जल्द उपलब्ध",
+        onion: "प्याज़ — जल्द उपलब्ध",
+        cropHint: "बाद में हर फसल के लिए अलग रोग-पूर्वानुमान मॉड्यूल जोड़े जा सकते हैं।",
+        prototypeNotice: "प्रोटोटाइप में अभी केवल टमाटर से आगे बढ़ सकते हैं।",
+        back: "पीछे",
+        continue: "आगे बढ़ें",
+        step3: "चरण 3",
+        locationTitle: "अपने खेत की सही जगह चुनें",
+        locationSubtitle: "वर्तमान स्थान का उपयोग करें या नक्शे पर टैप करके खेत पर पिन लगाएँ।",
+        useCurrent: "◎ वर्तमान स्थान का उपयोग करें",
+        clearPin: "पिन हटाएँ",
+        latitude: "अक्षांश",
+        longitude: "देशांतर",
+        mapHint: "खेत की जगह चुनने के लिए नक्शे पर टैप करें।",
+        locating: "आपका वर्तमान स्थान खोजा जा रहा है…",
+        locationFound: "वर्तमान स्थान मिल गया। नक्शे पर टैप करके पिन बदल सकते हैं।",
+        locationDenied: "स्थान नहीं मिल सका। लोकेशन अनुमति दें या नक्शे पर खेत की जगह स्वयं चुनें।",
+        pinPlaced: "खेत की जगह चुन ली गई है। बदलने के लिए नक्शे पर दूसरी जगह टैप करें।",
+        pinCleared: "पिन हटा दिया गया। खेत चुनने के लिए नक्शे पर टैप करें।",
+        saveField: "खेत की जगह सेव करें",
+        doneTitle: "खेत की शुरुआती सेटिंग पूरी हुई",
+        doneSubtitle: "अब प्रोटोटाइप के पास मौसम की जानकारी लेने के लिए फसल और खेत के सटीक निर्देशांक हैं।",
+        selectedLanguage: "भाषा",
+        selectedCrop: "फसल",
+        fieldCoordinates: "खेत के निर्देशांक",
+        nextModule: "अगला मॉड्यूल: इन निर्देशांकों से Open-Meteo पर प्रति घंटे का तापमान, सापेक्ष आर्द्रता और वर्षा लें, गीले घंटों का अनुमान लगाएँ और फिर Tomato TOMCAST रोग-जोखिम गणना में आवश्यक मान भेजें।",
+        editLocation: "जगह बदलें",
+        restart: "फिर से शुरू करें",
+        languageName: "हिंदी",
+        cropName: "टमाटर"
+      },
+
+      mr: {
+        step2: "टप्पा 2",
+        cropTitle: "तुमचे पीक निवडा",
+        cropSubtitle: "या शेतात घेतलेले पीक निवडा. या प्रोटोटाइपमध्ये सध्या फक्त टोमॅटो उपलब्ध आहे.",
+        cropLabel: "पीक",
+        selectCrop: "पीक निवडा",
+        tomato: "टोमॅटो — उपलब्ध",
+        potato: "बटाटा — लवकरच",
+        wheat: "गहू — लवकरच",
+        rice: "भात — लवकरच",
+        maize: "मका — लवकरच",
+        soybean: "सोयाबीन — लवकरच",
+        onion: "कांदा — लवकरच",
+        cropHint: "नंतर प्रत्येक पिकासाठी स्वतंत्र रोग-पूर्वानुमान मॉड्यूल जोडता येतील.",
+        prototypeNotice: "या प्रोटोटाइपमध्ये सध्या फक्त टोमॅटोसह पुढे जाता येईल.",
+        back: "मागे",
+        continue: "पुढे",
+        step3: "टप्पा 3",
+        locationTitle: "तुमच्या शेताचे अचूक ठिकाण निवडा",
+        locationSubtitle: "सध्याचे स्थान वापरा किंवा नकाशावर टॅप करून शेतावर पिन ठेवा.",
+        useCurrent: "◎ सध्याचे स्थान वापरा",
+        clearPin: "पिन काढा",
+        latitude: "अक्षांश",
+        longitude: "रेखांश",
+        mapHint: "शेताचे ठिकाण निवडण्यासाठी नकाशावर टॅप करा.",
+        locating: "तुमचे सध्याचे स्थान शोधत आहोत…",
+        locationFound: "सध्याचे स्थान मिळाले. नकाशावर टॅप करून पिन बदलू शकता.",
+        locationDenied: "स्थान मिळाले नाही. लोकेशन परवानगी द्या किंवा नकाशावर शेत स्वतः निवडा.",
+        pinPlaced: "शेताचे ठिकाण निवडले आहे. बदलण्यासाठी नकाशावर दुसऱ्या ठिकाणी टॅप करा.",
+        pinCleared: "पिन काढला. शेत निवडण्यासाठी नकाशावर टॅप करा.",
+        saveField: "शेताचे ठिकाण जतन करा",
+        doneTitle: "शेताची प्राथमिक सेटिंग पूर्ण",
+        doneSubtitle: "आता हवामान स्तरासाठी प्रोटोटाइपकडे पीक आणि शेताचे अचूक निर्देशांक आहेत.",
+        selectedLanguage: "भाषा",
+        selectedCrop: "पीक",
+        fieldCoordinates: "शेताचे निर्देशांक",
+        nextModule: "पुढील मॉड्यूल: हे निर्देशांक Open-Meteo कडे पाठवून तासागणिक तापमान, सापेक्ष आर्द्रता आणि पाऊस मिळवा, ओलसर तासांचा अंदाज करा आणि आवश्यक मूल्ये Tomato TOMCAST रोग-जोखीम गणनेत द्या.",
+        editLocation: "ठिकाण बदला",
+        restart: "पुन्हा सुरू करा",
+        languageName: "मराठी",
+        cropName: "टोमॅटो"
+      }
+    };
+const v2Translations = {"en": {"demoBadge": "Demo v2", "loginEyebrow": "MOBILE SIGN-IN", "loginTitle": "Sign in or register", "loginSubtitle": "Use your mobile number to get started. Your account is created on your first visit.", "mobileNumber": "Mobile number", "sendOtp": "Get demo OTP", "demoAuthNote": "Demo sign-in: no SMS is sent. Use any valid-format Indian mobile number to try the flow.", "dataNotice": "Demo account and field details stay in this browser. Please use a sample number.", "changeLanguage": "Change language", "phoneInvalid": "Enter a 10-digit Indian mobile number starting with 6, 7, 8 or 9.", "verifyEyebrow": "MOBILE VERIFICATION", "otpTitle": "Enter the OTP", "otpSubtitle": "Demo verification for", "changeNumber": "Change number", "otpLabel": "6-digit verification code", "verifyOtp": "Verify and continue", "demoCodeLabel": "Demo code · no SMS is sent", "fillCode": "Use this code", "otpExpiryNote": "This demo code expires after 5 minutes. This is a preview, not secure phone authentication.", "resendOtp": "Get demo code again", "resendIn": "Get code again in {seconds}s", "otpInvalid": "That code does not match. Use the demo code 123456.", "otpLength": "Enter all 6 digits.", "otpExpired": "This code has expired. Get a new demo code.", "otpLocked": "Too many attempts. Get a new demo code to try again.", "registrationDone": "Demo registration complete. Welcome!", "welcomeBack": "Welcome back to your demo account.", "homeEyebrow": "YOUR FARM COMPANION", "homeTitle": "Hello, farmer!", "homeSubtitle": "Keep an eye on your crops and your area.", "demoAlertsTitle": "Sample alerts, not live reports", "demoAlertsText": "These examples show how nearby alerts will look. Local monitoring is not connected yet.", "viewFields": "View fields", "nearbyTitle": "Around your farm", "sampleData": "Sample data", "recentAlerts": "Recent alerts", "hotspotAreas": "Hotspot areas", "diseaseWatch": "DISEASE WATCH", "pestWatch": "PEST WATCH", "ongoingDemo": "Ongoing · sample", "recentDemo": "Recent · sample", "alertOneTitle": "Tomato early blight", "alertOneText": "Example of a disease alert that could appear when nearby reports are available.", "alertTwoTitle": "Whitefly activity", "alertTwoText": "Example of a pest update. The location and distance shown are for demonstration only.", "areaAInfo": "Sample area A · 3 km away", "areaBInfo": "Sample area B · 6 km away", "areaA": "Sample area A", "areaB": "Sample area B", "distanceA": "3 km*", "distanceB": "6 km*", "diseaseCluster": "Disease cluster · sample", "pestCluster": "Pest cluster · sample", "hotspotIntro": "Illustrative areas only. These are not real outbreak locations.", "distanceDisclaimer": "*Sample distances are not calculated from your field.", "noLocation": "No field location yet", "noLocationHint": "Add a field to save its location.", "savedLocationHint": "Saved field · alerts above remain samples.", "fieldsEyebrow": "CROP & LOCATION", "fieldsTitle": "My fields", "fieldsSubtitle": "Keep your fields together, with a crop and location for each.", "noFields": "Add your first field", "noFieldsText": "Choose your crop, then mark your field on the map.", "addField": "+ Add field", "localOnly": "Saved on this device only. Cloud sync is not available yet.", "supportEyebrow": "A HELPING HAND", "supportTitle": "Support", "supportSubtitle": "Guidance from your local agricultural extension team.", "comingSoon": "Coming soon", "extensionTitle": "Extension staff support", "extensionText": "This is where you will be able to reach your local extension staff for help with crop concerns.", "contactSupport": "Contact support", "supportNotConnected": "Calling and messaging are not connected in this prototype.", "demoAccount": "Your demo account", "farmerId": "Farmer ID", "signOut": "Sign out", "accountNote": "Signing out keeps the fields saved in this browser for your next demo login.", "navHome": "Home", "navFields": "Fields", "navSupport": "Support", "mainNavigation": "Main navigation", "fieldName": "Field name (optional)", "fieldNamePlaceholder": "e.g. North field", "fieldDefault": "Tomato field {number}", "openField": "View field", "savedOnDevice": "Saved on this device", "forecastPending": "Disease forecast · coming soon", "backToFields": "Back to fields", "fieldSaved": "Field saved.", "step2": "ADD FIELD · 1 OF 2", "step3": "ADD FIELD · 2 OF 2", "cropSubtitle": "Choose the crop grown in this field. Tomato is available for this demo.", "cropHint": "Other crops will be available later.", "prototypeNotice": "Only Tomato is available in this prototype.", "doneTitle": "Your field is ready", "doneSubtitle": "Your crop and field location have been saved on this device.", "nextModule": "Weather and disease forecasts will appear here in a later update. No forecast is running yet.", "mapLabel": "Field location map", "mapLoadError": "The map could not load. You can still use your current location or enter coordinates below.", "tileError": "Some map tiles could not load. Try another connection, or use your current location.", "manualCoordinates": "Enter coordinates instead", "applyCoordinates": "Use these coordinates", "coordinateInvalid": "Enter valid latitude (−90 to 90) and longitude (−180 to 180).", "storageUnavailable": "Browser storage is unavailable. Your demo data will only last during this visit.", "alertViews": "Choose alerts or hotspots", "mapLoading": "Loading map…"}, "hi": {"demoBadge": "डेमो v2", "loginEyebrow": "मोबाइल से प्रवेश", "loginTitle": "लॉगिन या पंजीकरण", "loginSubtitle": "शुरू करने के लिए अपना मोबाइल नंबर डालें। पहली बार आपका खाता बन जाएगा।", "mobileNumber": "मोबाइल नंबर", "sendOtp": "डेमो OTP पाएँ", "demoAuthNote": "डेमो लॉगिन: कोई SMS नहीं भेजा जाएगा। आज़माने के लिए सही प्रारूप का कोई भारतीय मोबाइल नंबर डालें।", "dataNotice": "डेमो खाता और खेत की जानकारी इसी ब्राउज़र में रहेगी। कृपया नमूना नंबर इस्तेमाल करें।", "changeLanguage": "भाषा बदलें", "phoneInvalid": "6, 7, 8 या 9 से शुरू होने वाला 10 अंकों का भारतीय मोबाइल नंबर डालें।", "verifyEyebrow": "मोबाइल सत्यापन", "otpTitle": "OTP डालें", "otpSubtitle": "इस नंबर के लिए डेमो सत्यापन:", "changeNumber": "नंबर बदलें", "otpLabel": "6 अंकों का सत्यापन कोड", "verifyOtp": "सत्यापित करें और आगे बढ़ें", "demoCodeLabel": "डेमो कोड · कोई SMS नहीं भेजा जाएगा", "fillCode": "यह कोड भरें", "otpExpiryNote": "यह डेमो कोड 5 मिनट तक मान्य है। यह केवल प्रदर्शन है, सुरक्षित मोबाइल सत्यापन नहीं।", "resendOtp": "डेमो कोड फिर से पाएँ", "resendIn": "{seconds} सेकंड बाद कोड फिर पाएँ", "otpInvalid": "कोड सही नहीं है। डेमो कोड 123456 इस्तेमाल करें।", "otpLength": "सभी 6 अंक डालें।", "otpExpired": "कोड की समय-सीमा समाप्त हो गई। नया डेमो कोड लें।", "otpLocked": "बहुत अधिक प्रयास हुए। फिर कोशिश करने के लिए नया डेमो कोड लें।", "registrationDone": "डेमो पंजीकरण पूरा हुआ। आपका स्वागत है!", "welcomeBack": "आपके डेमो खाते में फिर से स्वागत है।", "homeEyebrow": "आपकी खेती का साथी", "homeTitle": "नमस्ते, किसान साथी!", "homeSubtitle": "अपनी फसल और आसपास के क्षेत्र पर नज़र रखें।", "demoAlertsTitle": "नमूना अलर्ट, वास्तविक रिपोर्ट नहीं", "demoAlertsText": "ये उदाहरण दिखाते हैं कि आसपास के अलर्ट कैसे दिखेंगे। स्थानीय निगरानी अभी जुड़ी नहीं है।", "viewFields": "खेत देखें", "nearbyTitle": "आपके खेत के आसपास", "sampleData": "नमूना जानकारी", "recentAlerts": "हाल के अलर्ट", "hotspotAreas": "प्रभावित क्षेत्र", "diseaseWatch": "रोग पर नज़र", "pestWatch": "कीट पर नज़र", "ongoingDemo": "जारी · नमूना", "recentDemo": "हाल का · नमूना", "alertOneTitle": "टमाटर का अगेती झुलसा", "alertOneText": "यह एक रोग अलर्ट का उदाहरण है। आसपास की रिपोर्ट मिलने पर ऐसे अलर्ट दिख सकेंगे।", "alertTwoTitle": "सफेद मक्खी की गतिविधि", "alertTwoText": "यह कीट अलर्ट का उदाहरण है। दिखाए गए स्थान और दूरी केवल प्रदर्शन के लिए हैं।", "areaAInfo": "नमूना क्षेत्र A · 3 किमी दूर", "areaBInfo": "नमूना क्षेत्र B · 6 किमी दूर", "areaA": "नमूना क्षेत्र A", "areaB": "नमूना क्षेत्र B", "distanceA": "3 किमी*", "distanceB": "6 किमी*", "diseaseCluster": "रोग प्रभावित क्षेत्र · नमूना", "pestCluster": "कीट प्रभावित क्षेत्र · नमूना", "hotspotIntro": "ये केवल उदाहरण हैं। ये रोग फैलने के वास्तविक स्थान नहीं हैं।", "distanceDisclaimer": "*ये नमूना दूरियाँ आपके खेत से नहीं मापी गई हैं।", "noLocation": "अभी खेत का स्थान नहीं जोड़ा", "noLocationHint": "स्थान सेव करने के लिए खेत जोड़ें।", "savedLocationHint": "सेव किया गया खेत · अलर्ट अभी नमूने हैं।", "fieldsEyebrow": "फसल और स्थान", "fieldsTitle": "मेरे खेत", "fieldsSubtitle": "हर खेत की फसल और स्थान की जानकारी एक जगह रखें।", "noFields": "अपना पहला खेत जोड़ें", "noFieldsText": "फसल चुनें, फिर नक्शे पर अपने खेत की जगह बताएँ।", "addField": "+ खेत जोड़ें", "localOnly": "केवल इसी डिवाइस पर सेव है। क्लाउड सिंक अभी उपलब्ध नहीं है।", "supportEyebrow": "मदद आपके साथ", "supportTitle": "सहायता", "supportSubtitle": "अपनी स्थानीय कृषि विस्तार टीम से मार्गदर्शन।", "comingSoon": "जल्द उपलब्ध", "extensionTitle": "कृषि विस्तार कर्मचारियों की सहायता", "extensionText": "यहाँ से आप फसल से जुड़ी समस्याओं के लिए स्थानीय कृषि विस्तार कर्मचारियों से संपर्क कर सकेंगे।", "contactSupport": "सहायता से संपर्क करें", "supportNotConnected": "इस प्रोटोटाइप में कॉल और संदेश की सुविधा अभी जुड़ी नहीं है।", "demoAccount": "आपका डेमो खाता", "farmerId": "किसान ID", "signOut": "लॉग आउट", "accountNote": "लॉग आउट करने पर खेत इसी ब्राउज़र में सेव रहेंगे। अगली बार इसी नंबर से डेमो लॉगिन करें।", "navHome": "होम", "navFields": "खेत", "navSupport": "सहायता", "mainNavigation": "मुख्य नेविगेशन", "fieldName": "खेत का नाम (वैकल्पिक)", "fieldNamePlaceholder": "जैसे: उत्तर वाला खेत", "fieldDefault": "टमाटर का खेत {number}", "openField": "खेत देखें", "savedOnDevice": "इस डिवाइस पर सेव", "forecastPending": "रोग पूर्वानुमान · जल्द उपलब्ध", "backToFields": "मेरे खेत पर जाएँ", "fieldSaved": "खेत सेव हो गया।", "step2": "खेत जोड़ें · चरण 1/2", "step3": "खेत जोड़ें · चरण 2/2", "cropSubtitle": "इस खेत की फसल चुनें। इस डेमो में टमाटर उपलब्ध है।", "cropHint": "अन्य फसलें बाद में उपलब्ध होंगी।", "prototypeNotice": "इस प्रोटोटाइप में केवल टमाटर उपलब्ध है।", "doneTitle": "आपका खेत तैयार है", "doneSubtitle": "फसल और खेत का स्थान इस डिवाइस पर सेव हो गया है।", "nextModule": "अगले अपडेट में यहाँ मौसम और रोग का पूर्वानुमान दिखेगा। अभी कोई पूर्वानुमान नहीं चल रहा है।", "mapLabel": "खेत के स्थान का नक्शा", "mapLoadError": "नक्शा लोड नहीं हुआ। आप वर्तमान स्थान इस्तेमाल कर सकते हैं या नीचे निर्देशांक डाल सकते हैं।", "tileError": "नक्शे का कुछ हिस्सा लोड नहीं हुआ। दूसरा इंटरनेट कनेक्शन या वर्तमान स्थान इस्तेमाल करें।", "manualCoordinates": "इसके बजाय निर्देशांक डालें", "applyCoordinates": "ये निर्देशांक इस्तेमाल करें", "coordinateInvalid": "सही अक्षांश (−90 से 90) और देशांतर (−180 से 180) डालें।", "storageUnavailable": "ब्राउज़र में सेव करना उपलब्ध नहीं है। डेमो जानकारी केवल इस बार तक रहेगी।", "alertViews": "अलर्ट या प्रभावित क्षेत्र चुनें", "mapLoading": "नक्शा लोड हो रहा है…"}, "mr": {"demoBadge": "डेमो v2", "loginEyebrow": "मोबाइलद्वारे प्रवेश", "loginTitle": "लॉगिन किंवा नोंदणी", "loginSubtitle": "सुरुवात करण्यासाठी तुमचा मोबाइल नंबर टाका. पहिल्या वेळी तुमचे खाते तयार होईल.", "mobileNumber": "मोबाइल नंबर", "sendOtp": "डेमो OTP मिळवा", "demoAuthNote": "डेमो लॉगिन: कोणताही SMS पाठवला जाणार नाही. वापरून पाहण्यासाठी योग्य स्वरूपातील भारतीय मोबाइल नंबर टाका.", "dataNotice": "डेमो खाते आणि शेताची माहिती याच ब्राउझरमध्ये राहील. कृपया नमुना नंबर वापरा.", "changeLanguage": "भाषा बदला", "phoneInvalid": "6, 7, 8 किंवा 9 ने सुरू होणारा 10 अंकी भारतीय मोबाइल नंबर टाका.", "verifyEyebrow": "मोबाइल पडताळणी", "otpTitle": "OTP टाका", "otpSubtitle": "या नंबरसाठी डेमो पडताळणी:", "changeNumber": "नंबर बदला", "otpLabel": "6 अंकी पडताळणी कोड", "verifyOtp": "पडताळणी करून पुढे जा", "demoCodeLabel": "डेमो कोड · SMS पाठवला जाणार नाही", "fillCode": "हा कोड भरा", "otpExpiryNote": "हा डेमो कोड 5 मिनिटांसाठी वैध आहे. हे फक्त प्रात्यक्षिक आहे, सुरक्षित मोबाइल पडताळणी नाही.", "resendOtp": "डेमो कोड पुन्हा मिळवा", "resendIn": "{seconds} सेकंदांनंतर पुन्हा कोड मिळवा", "otpInvalid": "कोड बरोबर नाही. डेमो कोड 123456 वापरा.", "otpLength": "सर्व 6 अंक टाका.", "otpExpired": "कोडची मुदत संपली आहे. नवीन डेमो कोड मिळवा.", "otpLocked": "खूप प्रयत्न झाले. पुन्हा प्रयत्न करण्यासाठी नवीन डेमो कोड मिळवा.", "registrationDone": "डेमो नोंदणी पूर्ण झाली. स्वागत आहे!", "welcomeBack": "तुमच्या डेमो खात्यात पुन्हा स्वागत आहे.", "homeEyebrow": "तुमच्या शेतीचा साथी", "homeTitle": "नमस्कार, शेतकरी मित्रा!", "homeSubtitle": "तुमच्या पिकांवर आणि परिसरावर लक्ष ठेवा.", "demoAlertsTitle": "नमुना सूचना, प्रत्यक्ष अहवाल नाहीत", "demoAlertsText": "जवळच्या सूचना कशा दिसतील हे या उदाहरणांतून दिसते. स्थानिक निरीक्षण अद्याप जोडलेले नाही.", "viewFields": "शेते पाहा", "nearbyTitle": "तुमच्या शेताच्या आसपास", "sampleData": "नमुना माहिती", "recentAlerts": "अलीकडील सूचना", "hotspotAreas": "प्रभावित भाग", "diseaseWatch": "रोगावर लक्ष", "pestWatch": "किडीवर लक्ष", "ongoingDemo": "सुरू · नमुना", "recentDemo": "अलीकडील · नमुना", "alertOneTitle": "टोमॅटोचा लवकर येणारा करपा", "alertOneText": "ही रोगाच्या सूचनेची नमुना माहिती आहे. जवळचे अहवाल मिळाल्यावर अशा सूचना दिसू शकतील.", "alertTwoTitle": "पांढऱ्या माशीचा प्रादुर्भाव", "alertTwoText": "ही किडीच्या सूचनेची नमुना माहिती आहे. दाखवलेले स्थान आणि अंतर केवळ प्रात्यक्षिकासाठी आहे.", "areaAInfo": "नमुना भाग A · 3 किमी दूर", "areaBInfo": "नमुना भाग B · 6 किमी दूर", "areaA": "नमुना भाग A", "areaB": "नमुना भाग B", "distanceA": "3 किमी*", "distanceB": "6 किमी*", "diseaseCluster": "रोगाचा प्रभावित भाग · नमुना", "pestCluster": "किडीचा प्रभावित भाग · नमुना", "hotspotIntro": "हे फक्त नमुना भाग आहेत. ही रोग पसरल्याची खरी ठिकाणे नाहीत.", "distanceDisclaimer": "*ही नमुना अंतरे तुमच्या शेतापासून मोजलेली नाहीत.", "noLocation": "शेताचे स्थान अद्याप जोडलेले नाही", "noLocationHint": "स्थान जतन करण्यासाठी शेत जोडा.", "savedLocationHint": "जतन केलेले शेत · सूचना अद्याप नमुने आहेत.", "fieldsEyebrow": "पीक आणि स्थान", "fieldsTitle": "माझी शेते", "fieldsSubtitle": "प्रत्येक शेताचे पीक आणि स्थान यांची माहिती एकत्र ठेवा.", "noFields": "तुमचे पहिले शेत जोडा", "noFieldsText": "पीक निवडा आणि नकाशावर तुमच्या शेताचे ठिकाण निवडा.", "addField": "+ शेत जोडा", "localOnly": "फक्त या डिव्हाइसवर जतन केले आहे. क्लाउड सिंक अद्याप उपलब्ध नाही.", "supportEyebrow": "मदतीचा हात", "supportTitle": "मदत", "supportSubtitle": "तुमच्या स्थानिक कृषी विस्तार पथकाकडून मार्गदर्शन.", "comingSoon": "लवकरच उपलब्ध", "extensionTitle": "कृषी विस्तार कर्मचाऱ्यांची मदत", "extensionText": "पिकांच्या समस्यांबाबत मदतीसाठी इथून स्थानिक कृषी विस्तार कर्मचाऱ्यांशी संपर्क साधता येईल.", "contactSupport": "मदतीसाठी संपर्क करा", "supportNotConnected": "या प्रोटोटाइपमध्ये कॉल आणि संदेशांची सुविधा अद्याप जोडलेली नाही.", "demoAccount": "तुमचे डेमो खाते", "farmerId": "शेतकरी ID", "signOut": "लॉग आउट", "accountNote": "लॉग आउट केल्यानंतरही शेते याच ब्राउझरमध्ये जतन राहतील. पुढच्या वेळी याच नंबरने डेमो लॉगिन करा.", "navHome": "होम", "navFields": "शेते", "navSupport": "मदत", "mainNavigation": "मुख्य नेव्हिगेशन", "fieldName": "शेताचे नाव (ऐच्छिक)", "fieldNamePlaceholder": "उदा. उत्तरेकडचे शेत", "fieldDefault": "टोमॅटोचे शेत {number}", "openField": "शेत पाहा", "savedOnDevice": "या डिव्हाइसवर जतन केले", "forecastPending": "रोगाचा अंदाज · लवकरच", "backToFields": "माझ्या शेतांकडे जा", "fieldSaved": "शेत जतन झाले.", "step2": "शेत जोडा · टप्पा 1/2", "step3": "शेत जोडा · टप्पा 2/2", "cropSubtitle": "या शेतातील पीक निवडा. या डेमोमध्ये टोमॅटो उपलब्ध आहे.", "cropHint": "इतर पिके नंतर उपलब्ध होतील.", "prototypeNotice": "या प्रोटोटाइपमध्ये फक्त टोमॅटो उपलब्ध आहे.", "doneTitle": "तुमचे शेत तयार आहे", "doneSubtitle": "पीक आणि शेताचे स्थान या डिव्हाइसवर जतन झाले आहे.", "nextModule": "पुढील अपडेटमध्ये येथे हवामान आणि रोगाचा अंदाज दिसेल. सध्या कोणताही अंदाज चालू नाही.", "mapLabel": "शेताच्या स्थानाचा नकाशा", "mapLoadError": "नकाशा लोड झाला नाही. सध्याचे स्थान वापरा किंवा खाली निर्देशांक टाका.", "tileError": "नकाशाचा काही भाग लोड झाला नाही. दुसरे इंटरनेट कनेक्शन किंवा सध्याचे स्थान वापरा.", "manualCoordinates": "त्याऐवजी निर्देशांक टाका", "applyCoordinates": "हे निर्देशांक वापरा", "coordinateInvalid": "योग्य अक्षांश (−90 ते 90) आणि रेखांश (−180 ते 180) टाका.", "storageUnavailable": "ब्राउझरमध्ये जतन करणे उपलब्ध नाही. डेमो माहिती फक्त या भेटीपुरती राहील.", "alertViews": "सूचना किंवा प्रभावित भाग निवडा", "mapLoading": "नकाशा लोड होत आहे…"}};
+for(const lang of Object.keys(v2Translations)) Object.assign(translations[lang],v2Translations[lang]);
+const v3Translations = {"en": {"demoAlertsText": "These examples show how nearby updates will look. Local monitoring is not connected yet.", "nearbyUpdates": "Alerts and hotspot areas", "activeAlerts": "Available alerts", "noFieldsText": "Choose the field location first, then add crop details.", "fieldStepLocation": "ADD FIELD · 1 OF 2", "locationFirstSubtitle": "Choose the exact field first. We will use its coordinates to load hourly weather for the disease-risk model.", "openMeteoWeather": "OPEN-METEO WEATHER", "weatherTitle": "Weather inputs for TOMCAST", "weatherConnecting": "Connecting to live weather…", "weatherReady": "Weather synced", "weatherUnavailable": "Weather unavailable", "weatherUnavailableNote": "Weather could not be loaded right now. You can still continue and retry later.", "weatherRetry": "Retry weather sync", "currentTemperature": "Current temperature", "relativeHumidity": "Current humidity", "rainNext24": "Rain forecast · next 24 h", "estimatedWetHours": "Estimated wet hours · next 24 h", "wetPeriodTemperature": "Avg. temperature in wet hours", "weatherProxyNote": "Estimated wet hours use hourly relative humidity ≥90%. This is a weather proxy, not a direct leaf-wetness measurement; a field sensor can provide better data.", "continueDetails": "Continue to crop details", "fieldStepDetails": "ADD FIELD · 2 OF 2", "fieldDetailsTitle": "Crop and field details", "fieldDetailsSubtitle": "Crop is required. Add the other details only if they are already known or available.", "selectedLocation": "Selected field location", "plantStage": "Current plant stage (optional)", "notProvided": "Not provided", "stageNotPlanted": "Not planted yet", "stageSeedling": "Seedling / nursery", "stageVegetative": "Vegetative growth", "stageFlowering": "Flowering", "stageFruiting": "Fruiting", "stageHarvest": "Harvest stage", "stageUnknown": "Not sure", "plantingDate": "Sowing/transplanting date (optional)", "soilType": "Soil type (optional)", "soilLoamy": "Loamy", "soilClay": "Clay", "soilSandy": "Sandy", "soilBlack": "Black soil", "soilRed": "Red soil", "other": "Other", "irrigationMethod": "Irrigation method (optional)", "irrigationRainfed": "Rain-fed", "irrigationDrip": "Drip", "irrigationSprinkler": "Sprinkler", "irrigationFurrow": "Furrow/flood", "historyLabel": "Known pest or disease history (optional)", "historyPlaceholder": "For example: whitefly last month, early blight last season", "historyHint": "Useful when crops are already growing or the field has repeated problems.", "sensorCameraTitle": "Sensors and camera (optional)", "sensorCameraSummary": "Choose any equipment already installed and add the first available reading.", "leafWetnessSensor": "Leaf-wetness sensor", "climateSensor": "Temperature/humidity sensor", "soilMoistureSensor": "Soil-moisture sensor", "fieldCamera": "Field camera", "firstReadingsTitle": "First available readings", "deviceReadingHint": "Leave any reading blank if your device does not provide it.", "observedAt": "Reading time (optional)", "manualTemp": "Air temperature °C", "manualHumidity": "Relative humidity %", "leafWetHours": "Measured wet hours in last 24 h", "soilMoistureReading": "Soil moisture %", "cameraImage": "Current field/crop image (optional)", "cameraHint": "Preview only in this prototype; the image is not uploaded or saved.", "selectedPhoto": "Selected: {name}", "photoTooLarge": "Choose an image smaller than 5 MB.", "otherObservations": "Other useful observations (optional)", "otherObservationsHint": "For example: recent waterlogging, shade, unusual leaf colour", "readingInvalid": "Check the optional sensor readings and use values within the shown ranges.", "saveField": "Save field", "summaryFieldName": "Field", "summaryStage": "Plant stage", "summaryWeather": "Weather input", "summaryInputs": "Optional devices", "inputWeatherOnly": "No devices added", "deviceSources": "{count} device source(s)", "weatherSummary": "{temp} °C · {humidity}% RH · {wet} h wetness estimate", "editDetails": "Edit details", "nextModuleV3": "The field is ready for the future Tomato TOMCAST risk module. Weather-based wetness remains an estimate unless a leaf-wetness sensor is connected.", "doneSubtitle": "Location, crop details and available readings have been saved on this device.", "weatherPending": "Not synced yet", "fieldWeatherReady": "Open-Meteo synced", "fieldWeatherUnavailable": "Weather not synced"}, "hi": {"demoAlertsText": "ये उदाहरण दिखाते हैं कि आसपास की उपलब्ध जानकारी कैसे दिखेगी। स्थानीय निगरानी अभी जुड़ी नहीं है।", "nearbyUpdates": "अलर्ट और प्रभावित क्षेत्र", "activeAlerts": "उपलब्ध अलर्ट", "noFieldsText": "पहले खेत की जगह चुनें, फिर फसल की जानकारी जोड़ें।", "fieldStepLocation": "खेत जोड़ें · चरण 1/2", "locationFirstSubtitle": "पहले खेत की सही जगह चुनें। रोग-जोखिम मॉडल के लिए इसी स्थान का प्रति घंटे का मौसम लिया जाएगा।", "openMeteoWeather": "OPEN-METEO मौसम", "weatherTitle": "TOMCAST के लिए मौसम इनपुट", "weatherConnecting": "मौसम की जानकारी ली जा रही है…", "weatherReady": "मौसम सिंक हो गया", "weatherUnavailable": "मौसम उपलब्ध नहीं", "weatherUnavailableNote": "अभी मौसम की जानकारी नहीं मिली। आप आगे बढ़ सकते हैं और बाद में फिर कोशिश कर सकते हैं।", "weatherRetry": "मौसम फिर से लोड करें", "currentTemperature": "वर्तमान तापमान", "relativeHumidity": "वर्तमान आर्द्रता", "rainNext24": "अगले 24 घंटे की वर्षा", "estimatedWetHours": "अगले 24 घंटे के अनुमानित गीले घंटे", "wetPeriodTemperature": "गीले घंटों का औसत तापमान", "weatherProxyNote": "अनुमानित गीले घंटे प्रति घंटे की आर्द्रता ≥90% से निकाले गए हैं। यह मौसम-आधारित अनुमान है, सीधे मापी गई पत्ती की नमी नहीं; खेत का सेंसर बेहतर डेटा दे सकता है।", "continueDetails": "फसल की जानकारी भरें", "fieldStepDetails": "खेत जोड़ें · चरण 2/2", "fieldDetailsTitle": "फसल और खेत की जानकारी", "fieldDetailsSubtitle": "फसल चुनना जरूरी है। बाकी जानकारी केवल उपलब्ध होने पर भरें।", "selectedLocation": "चुनी हुई खेत की जगह", "plantStage": "पौधे की वर्तमान अवस्था (वैकल्पिक)", "notProvided": "जानकारी नहीं दी", "stageNotPlanted": "अभी रोपाई नहीं हुई", "stageSeedling": "पौध/नर्सरी", "stageVegetative": "वानस्पतिक वृद्धि", "stageFlowering": "फूल आने की अवस्था", "stageFruiting": "फल आने की अवस्था", "stageHarvest": "कटाई की अवस्था", "stageUnknown": "पता नहीं", "plantingDate": "बुवाई/रोपाई की तारीख (वैकल्पिक)", "soilType": "मिट्टी का प्रकार (वैकल्पिक)", "soilLoamy": "दोमट", "soilClay": "चिकनी मिट्टी", "soilSandy": "रेतीली", "soilBlack": "काली मिट्टी", "soilRed": "लाल मिट्टी", "other": "अन्य", "irrigationMethod": "सिंचाई का तरीका (वैकल्पिक)", "irrigationRainfed": "वर्षा आधारित", "irrigationDrip": "ड्रिप", "irrigationSprinkler": "स्प्रिंकलर", "irrigationFurrow": "नाली/बाढ़ सिंचाई", "historyLabel": "पुराना कीट या रोग इतिहास (वैकल्पिक)", "historyPlaceholder": "जैसे: पिछले महीने सफेद मक्खी, पिछले मौसम में अगेती झुलसा", "historyHint": "फसल पहले से बढ़ रही हो या खेत में समस्या बार-बार आती हो तो उपयोगी है।", "sensorCameraTitle": "सेंसर और कैमरा (वैकल्पिक)", "sensorCameraSummary": "खेत में लगे उपकरण चुनें और उपलब्ध पहली रीडिंग भरें।", "leafWetnessSensor": "पत्ती-नमी सेंसर", "climateSensor": "तापमान/आर्द्रता सेंसर", "soilMoistureSensor": "मिट्टी-नमी सेंसर", "fieldCamera": "खेत का कैमरा", "firstReadingsTitle": "पहली उपलब्ध रीडिंग", "deviceReadingHint": "आपका उपकरण जो मान नहीं देता उसे खाली छोड़ दें।", "observedAt": "रीडिंग का समय (वैकल्पिक)", "manualTemp": "हवा का तापमान °C", "manualHumidity": "सापेक्ष आर्द्रता %", "leafWetHours": "पिछले 24 घंटों के मापे हुए गीले घंटे", "soilMoistureReading": "मिट्टी की नमी %", "cameraImage": "खेत/फसल की वर्तमान फोटो (वैकल्पिक)", "cameraHint": "इस प्रोटोटाइप में केवल प्रीव्यू; फोटो अपलोड या सेव नहीं होगी।", "selectedPhoto": "चुनी गई: {name}", "photoTooLarge": "5 MB से छोटी फोटो चुनें।", "otherObservations": "अन्य उपयोगी जानकारी (वैकल्पिक)", "otherObservationsHint": "जैसे: हाल का जलभराव, अधिक छाया, पत्तियों का असामान्य रंग", "readingInvalid": "वैकल्पिक सेंसर रीडिंग जाँचें और दिखाई गई सीमा के भीतर मान भरें।", "saveField": "खेत सेव करें", "summaryFieldName": "खेत", "summaryStage": "पौधे की अवस्था", "summaryWeather": "मौसम इनपुट", "summaryInputs": "वैकल्पिक उपकरण", "inputWeatherOnly": "कोई उपकरण नहीं जोड़ा", "deviceSources": "{count} उपकरण स्रोत", "weatherSummary": "{temp} °C · {humidity}% RH · {wet} घंटे नमी अनुमान", "editDetails": "जानकारी बदलें", "nextModuleV3": "खेत भविष्य के Tomato TOMCAST जोखिम मॉड्यूल के लिए तैयार है। पत्ती-नमी सेंसर जुड़ने तक गीले घंटे मौसम से अनुमानित रहेंगे।", "doneSubtitle": "स्थान, फसल की जानकारी और उपलब्ध रीडिंग इस डिवाइस पर सेव हो गई हैं।", "weatherPending": "अभी सिंक नहीं हुआ", "fieldWeatherReady": "Open-Meteo सिंक हुआ", "fieldWeatherUnavailable": "मौसम सिंक नहीं हुआ"}, "mr": {"demoAlertsText": "जवळची उपलब्ध माहिती कशी दिसेल हे या उदाहरणांतून दिसते. स्थानिक निरीक्षण अद्याप जोडलेले नाही.", "nearbyUpdates": "सूचना आणि प्रभावित भाग", "activeAlerts": "उपलब्ध सूचना", "noFieldsText": "प्रथम शेताचे ठिकाण निवडा, नंतर पिकाची माहिती जोडा.", "fieldStepLocation": "शेत जोडा · टप्पा 1/2", "locationFirstSubtitle": "प्रथम शेताचे अचूक ठिकाण निवडा. रोग-जोखीम मॉडेलसाठी याच ठिकाणचे तासागणिक हवामान घेतले जाईल.", "openMeteoWeather": "OPEN-METEO हवामान", "weatherTitle": "TOMCAST साठी हवामान इनपुट", "weatherConnecting": "हवामान माहिती मिळवत आहोत…", "weatherReady": "हवामान सिंक झाले", "weatherUnavailable": "हवामान उपलब्ध नाही", "weatherUnavailableNote": "सध्या हवामान माहिती मिळाली नाही. तुम्ही पुढे जाऊन नंतर पुन्हा प्रयत्न करू शकता.", "weatherRetry": "हवामान पुन्हा लोड करा", "currentTemperature": "सध्याचे तापमान", "relativeHumidity": "सध्याची आर्द्रता", "rainNext24": "पुढील 24 तासांचा पाऊस", "estimatedWetHours": "पुढील 24 तासांचे अंदाजित ओले तास", "wetPeriodTemperature": "ओल्या तासांतील सरासरी तापमान", "weatherProxyNote": "अंदाजित ओले तास तासागणिक आर्द्रता ≥90% यावर मोजले आहेत. हा हवामानावर आधारित अंदाज आहे, थेट मोजलेली पानांची ओल नाही; शेतातील सेंसर अधिक चांगला डेटा देऊ शकतो.", "continueDetails": "पिकाची माहिती भरा", "fieldStepDetails": "शेत जोडा · टप्पा 2/2", "fieldDetailsTitle": "पीक आणि शेताची माहिती", "fieldDetailsSubtitle": "पीक निवडणे आवश्यक आहे. बाकीची माहिती उपलब्ध असल्यासच भरा.", "selectedLocation": "निवडलेले शेताचे ठिकाण", "plantStage": "झाडाची सध्याची अवस्था (ऐच्छिक)", "notProvided": "माहिती दिलेली नाही", "stageNotPlanted": "अजून लागवड केलेली नाही", "stageSeedling": "रोप/नर्सरी", "stageVegetative": "शाकीय वाढ", "stageFlowering": "फुलोरा", "stageFruiting": "फळधारणा", "stageHarvest": "काढणीची अवस्था", "stageUnknown": "माहित नाही", "plantingDate": "पेरणी/लागवडीची तारीख (ऐच्छिक)", "soilType": "मातीचा प्रकार (ऐच्छिक)", "soilLoamy": "लोम माती", "soilClay": "चिकणमाती", "soilSandy": "वालुकामय", "soilBlack": "काळी माती", "soilRed": "लाल माती", "other": "इतर", "irrigationMethod": "सिंचन पद्धत (ऐच्छिक)", "irrigationRainfed": "पावसावर आधारित", "irrigationDrip": "ठिबक", "irrigationSprinkler": "तुषार", "irrigationFurrow": "सरी/पाट पाणी", "historyLabel": "पूर्वीचा कीड किंवा रोग इतिहास (ऐच्छिक)", "historyPlaceholder": "उदा. मागील महिन्यात पांढरी माशी, मागील हंगामात लवकर करपा", "historyHint": "पीक आधीच वाढत असल्यास किंवा शेतात समस्या वारंवार होत असल्यास उपयुक्त.", "sensorCameraTitle": "सेंसर आणि कॅमेरा (ऐच्छिक)", "sensorCameraSummary": "शेतात बसवलेली उपकरणे निवडा आणि उपलब्ध पहिली रीडिंग भरा.", "leafWetnessSensor": "पान-ओलावा सेंसर", "climateSensor": "तापमान/आर्द्रता सेंसर", "soilMoistureSensor": "माती-ओलावा सेंसर", "fieldCamera": "शेतातील कॅमेरा", "firstReadingsTitle": "पहिली उपलब्ध रीडिंग", "deviceReadingHint": "तुमचे उपकरण जो आकडा देत नाही तो रिकामा ठेवा.", "observedAt": "रीडिंगची वेळ (ऐच्छिक)", "manualTemp": "हवेचे तापमान °C", "manualHumidity": "सापेक्ष आर्द्रता %", "leafWetHours": "मागील 24 तासांतील मोजलेले ओले तास", "soilMoistureReading": "मातीतील ओलावा %", "cameraImage": "शेत/पिकाचा सध्याचा फोटो (ऐच्छिक)", "cameraHint": "या प्रोटोटाइपमध्ये फक्त प्रीव्ह्यू; फोटो अपलोड किंवा जतन होणार नाही.", "selectedPhoto": "निवडले: {name}", "photoTooLarge": "5 MB पेक्षा लहान फोटो निवडा.", "otherObservations": "इतर उपयुक्त निरीक्षणे (ऐच्छिक)", "otherObservationsHint": "उदा. अलीकडील पाणी साचणे, जास्त सावली, पानांचा असामान्य रंग", "readingInvalid": "ऐच्छिक सेंसर रीडिंग तपासा आणि दाखवलेल्या मर्यादेत आकडे भरा.", "saveField": "शेत जतन करा", "summaryFieldName": "शेत", "summaryStage": "झाडाची अवस्था", "summaryWeather": "हवामान इनपुट", "summaryInputs": "ऐच्छिक उपकरणे", "inputWeatherOnly": "कोणतेही उपकरण जोडले नाही", "deviceSources": "{count} उपकरण स्रोत", "weatherSummary": "{temp} °C · {humidity}% RH · {wet} तास ओलावा अंदाज", "editDetails": "माहिती बदला", "nextModuleV3": "शेत भविष्यातील Tomato TOMCAST जोखीम मॉड्यूलसाठी तयार आहे. पान-ओलावा सेंसर जोडलेला नसल्यास ओले तास हवामानावरून अंदाजित राहतील.", "doneSubtitle": "ठिकाण, पिकाची माहिती आणि उपलब्ध रीडिंग या डिव्हाइसवर जतन झाली आहेत.", "weatherPending": "अजून सिंक झाले नाही", "fieldWeatherReady": "Open-Meteo सिंक झाले", "fieldWeatherUnavailable": "हवामान सिंक झाले नाही"}};
+for(const lang of Object.keys(v3Translations)) Object.assign(translations[lang],v3Translations[lang]);
+translations.en.demoBadge='Demo v3';translations.hi.demoBadge='डेमो v3';translations.mr.demoBadge='डेमो v3';
+
+// PROTOTYPE ONLY: no SMS service, live alert feed, or support backend is connected.
+// Replace the DemoAuth adapter with a verified provider before handling real accounts.
+const STORAGE_KEY = 'fasalsathi.demo.v2';
+const SESSION_KEY = 'fasalsathi.demo.session';
+const DEMO_CODE = '123456';
+const $ = id => document.getElementById(id);
+const state = {lang:'en',page:'language',user:null,crop:'',lat:null,lon:null,editingId:null,weather:null,weatherStatus:'idle',cameraFileName:''};
+let db = {accounts:{},lang:'en'}, storageAvailable = true, pendingOtp = null, otpTimer = null, toastTimer = null;
+let map = null, fieldMarker = null, leafletLoading = null, locationRequest = 0, weatherRequest = 0;
+const t = (key,vars={}) => { let s=translations[state.lang][key] || translations.en[key] || key; for(const [k,v] of Object.entries(vars)) s=s.replaceAll('{'+k+'}',String(v)); return s; };
+const escapeHtml = value => String(value).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const maskPhone = phone => '+91 •••••• '+phone.slice(-4);
+const newId = prefix => prefix+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
+const account = () => state.user ? db.accounts[state.user] : null;
+const fieldLabel = (field,index) => field.name || t('fieldDefault',{number:index+1});
+function toast(message){ clearTimeout(toastTimer); $('toast').textContent=message; $('toast').hidden=false; toastTimer=setTimeout(()=>$('toast').hidden=true,4000); }
+function persist(){ try {localStorage.setItem(STORAGE_KEY,JSON.stringify(db));} catch {storageAvailable=false;toast(t('storageUnavailable'));} }
+function loadSaved(){
+  try {
+    const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+    if(saved && saved.accounts && typeof saved.accounts==='object' && !Array.isArray(saved.accounts)) {
+      db={accounts:{},lang:['en','hi','mr'].includes(saved.lang)?saved.lang:'en'};
+      for(const [phone,a] of Object.entries(saved.accounts)) {
+        if(!/^[6-9][0-9]{9}$/.test(phone)||!a||typeof a.id!=='string') continue;
+        const fields=Array.isArray(a.fields)?a.fields.filter(f=>f&&typeof f.id==='string'&&f.crop==='tomato'&&Number.isFinite(f.lat)&&Number.isFinite(f.lon)&&Math.abs(f.lat)<=90&&Math.abs(f.lon)<=180).map(f=>({...f,name:typeof f.name==='string'?f.name.slice(0,40):''})):[];
+        db.accounts[phone]={id:a.id,fields};
+      }
+    }
+    const phone=sessionStorage.getItem(SESSION_KEY); if(phone && db.accounts[phone]) state.user=phone;
+  } catch {storageAvailable=false;}
+  state.lang=db.lang||'en';
+}
+function applyLanguage(){
+  document.documentElement.lang=state.lang; $('languageSwitch').value=state.lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-option]').forEach(el=>el.textContent=t(el.dataset.i18nOption));
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>el.placeholder=t(el.dataset.i18nPlaceholder));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAria)));
+  $('locationStatus').textContent=state.lat===null?t('mapHint'):t('pinPlaced');
+  ['phoneError','otpError','coordinateError','fieldDetailsError'].forEach(id=>{const key=$(id).dataset.errorKey;if(key) $(id).textContent=t(key);});
+  updateOtpTimer(); renderHome(); renderFields(); renderSupport(); renderWeatherCard(); syncDeviceVisibility(); if(state.page==='done') fillSummary();
+}
+function setError(id,key=''){ $(id).dataset.errorKey=key;$(id).textContent=key?t(key):''; }
+function showScreen(name,replace=false){
+  const publicScreens=['language','login','otp'];
+  if(!publicScreens.includes(name) && !account()) name='login';
+  if(name==='otp'&&!pendingOtp) name='login';
+  if(account() && ['login','otp'].includes(name)) name='home';
+  if(name==='done'&&(state.lat===null||state.lon===null)) name='fields';
+  state.page=name;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+name));
+  const signed=!!account(); document.body.classList.toggle('signed-in',signed); $('bottomNav').hidden=!signed;
+  $('languageSwitch').hidden=name==='language';
+  const widths={language:33,login:66,otp:100,location:50,crop:100};
+  $('setupProgress').hidden=!(name in widths); $('progressBar').style.width=(widths[name]||100)+'%'; $('progressTrack').setAttribute('aria-valuenow',widths[name]||100);
+  document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.route===(['crop','location','done'].includes(name)?'fields':name);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  if(name==='home')renderHome();if(name==='fields')renderFields();if(name==='support')renderSupport();if(name==='done')fillSummary();
+  if(name==='location') {ensureMap().then(()=>{if(map&&state.page==='location')map.invalidateSize();});}
+  if(name!=='location') {locationRequest++;$('currentLocationBtn').disabled=false;}
+  try { if(location.hash!=='#'+name) history[replace?'replaceState':'pushState']({screen:name},'','#'+name); } catch {}
+  window.scrollTo({top:0,behavior:'instant'});
+  const title=$('screen-'+name).querySelector('h1,h2');if(title){title.tabIndex=-1;title.focus({preventScroll:true});}
+}
+function normalizePhone(raw){let p=raw.replace(/\D/g,'');if(p.length===12&&p.startsWith('91'))p=p.slice(2);if(p.length===11&&p.startsWith('0'))p=p.slice(1);return p;}
+// DemoAuth is intentionally local and must not be used as production authentication.
+const DemoAuth = {
+  request(phone){pendingOtp={phone,expires:Date.now()+300000,resendAt:Date.now()+30000,attempts:0};},
+  verify(code){if(!pendingOtp||Date.now()>pendingOtp.expires)return 'otpExpired';if(pendingOtp.attempts>=5)return 'otpLocked';if(!/^\d{6}$/.test(code))return 'otpLength';if(code!==DEMO_CODE){pendingOtp.attempts++;return pendingOtp.attempts>=5?'otpLocked':'otpInvalid';}return null;}
+};
+function updateOtpTimer(){
+  const seconds=pendingOtp?Math.max(0,Math.ceil((pendingOtp.resendAt-Date.now())/1000)):0;
+  $('resendOtp').disabled=seconds>0; $('resendOtp').textContent=seconds?t('resendIn',{seconds}):t('resendOtp');
+  if(pendingOtp && Date.now()>pendingOtp.expires && state.page==='otp')setError('otpError','otpExpired');
+}
+function requestDemoOtp(phone){
+  DemoAuth.request(phone);$('otpPhone').textContent=maskPhone(phone);$('otpCode').value='';setError('otpError');updateOtpTimer();clearInterval(otpTimer);otpTimer=setInterval(updateOtpTimer,1000);showScreen('otp');
+}
+$('loginForm').addEventListener('submit',e=>{e.preventDefault();const phone=normalizePhone($('mobileNumber').value);if(!/^[6-9]\d{9}$/.test(phone)){setError('phoneError','phoneInvalid');$('mobileNumber').setAttribute('aria-invalid','true');return;}setError('phoneError');$('mobileNumber').removeAttribute('aria-invalid');requestDemoOtp(phone);});
+$('mobileNumber').addEventListener('input',()=>{setError('phoneError');$('mobileNumber').removeAttribute('aria-invalid');});
+$('otpCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6);setError('otpError');});
+$('otpForm').addEventListener('submit',e=>{
+  e.preventDefault();const error=DemoAuth.verify($('otpCode').value.trim());if(error){setError('otpError',error);return;}
+  const phone=pendingOtp.phone;const first=!db.accounts[phone];if(first)db.accounts[phone]={id:newId('FS-'),fields:[]};state.user=phone;db.lang=state.lang;persist();
+  try{sessionStorage.setItem(SESSION_KEY,phone);}catch{storageAvailable=false;}
+  pendingOtp=null;clearInterval(otpTimer);$('otpCode').value='';showScreen('home',true);toast(t(first?'registrationDone':'welcomeBack'));
+});
+$('fillDemoCode').addEventListener('click',()=>{$('otpCode').value=DEMO_CODE;setError('otpError');$('verifyOtpBtn').focus();});
+$('resendOtp').addEventListener('click',()=>{if(pendingOtp&&Date.now()>=pendingOtp.resendAt)requestDemoOtp(pendingOtp.phone);});
+$('changeNumber').addEventListener('click',()=>{pendingOtp=null;clearInterval(otpTimer);showScreen('login');});
+document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{state.lang=b.dataset.lang;db.lang=state.lang;persist();applyLanguage();showScreen(account()?'home':'login');}));
+$('languageSwitch').addEventListener('change',e=>{state.lang=e.target.value;db.lang=state.lang;persist();applyLanguage();});
+document.querySelectorAll('[data-back],[data-route]').forEach(b=>b.addEventListener('click',()=>showScreen(b.dataset.back||b.dataset.route)));
+function renderHome(){
+  const fields=account()?.fields||[];const first=fields[0];$('homeLocationTitle').textContent=first?fieldLabel(first,0):t('noLocation');$('homeLocationHint').textContent=t(first?'savedLocationHint':'noLocationHint');
+}
+const stageTranslationKey={not_planted:'stageNotPlanted',seedling:'stageSeedling',vegetative:'stageVegetative',flowering:'stageFlowering',fruiting:'stageFruiting',harvest:'stageHarvest',unknown:'stageUnknown'};
+function stageName(value){return value?t(stageTranslationKey[value]||'stageUnknown'):t('notProvided');}
+function deviceCount(field){const d=field?.devices||{};return ['leafWetness','climate','soilMoisture','camera'].filter(k=>d[k]).length;}
+function renderFields(){
+  const fields=account()?.fields||[];$('fieldsEmpty').hidden=fields.length>0;$('addAnotherField').hidden=!fields.length;
+  $('fieldList').innerHTML=fields.map((f,i)=>{const weather=f.weather?t('fieldWeatherReady'):t('fieldWeatherUnavailable');return '<article class="field-card"><div class="field-card-head"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-fields"></use></svg></div><div><h3>'+escapeHtml(fieldLabel(f,i))+'</h3><p>'+escapeHtml(t('cropName'))+' · '+escapeHtml(stageName(f.plantStage))+'</p></div></div><div class="field-meta">'+escapeHtml(t('fieldCoordinates'))+'<br><strong>'+f.lat.toFixed(6)+', '+f.lon.toFixed(6)+'</strong></div><div class="field-meta-row"><span class="status-pill green">'+escapeHtml(weather)+'</span><span class="status-pill green">'+escapeHtml(t('forecastPending'))+'</span></div><button type="button" class="btn btn-secondary" data-open-field="'+escapeHtml(f.id)+'">'+escapeHtml(t('openField'))+'</button></article>';}).join('');
+}
+function renderSupport(){const a=account();$('accountId').textContent=a?.id||'—';$('accountPhone').textContent=state.user?maskPhone(state.user):'—';}
+function resetDetailsForm(){
+  $('fieldDetailsForm').reset();$('cropContinue').disabled=true;$('fieldName').value='';$('cameraFileName').textContent='';$('cameraPreview').hidden=true;$('cameraPreview').removeAttribute('src');state.cameraFileName='';setError('fieldDetailsError');syncDeviceVisibility();
+}
+function clearPin(){locationRequest++;weatherRequest++;state.lat=null;state.lon=null;state.weather=null;state.weatherStatus='idle';$('latValue').textContent='—';$('lonValue').textContent='—';$('manualLat').value='';$('manualLon').value='';$('saveLocationBtn').disabled=true;if(map&&fieldMarker){map.removeLayer(fieldMarker);fieldMarker=null;}$('locationStatus').textContent=t('pinCleared');$('locationStatus').classList.remove('error');$('currentLocationBtn').disabled=false;renderWeatherCard();}
+function startField(){state.editingId=null;state.crop='';resetDetailsForm();clearPin();setError('coordinateError');showScreen('location');}
+function loadField(field){
+  state.editingId=field.id;state.crop=field.crop;state.lat=field.lat;state.lon=field.lon;state.weather=field.weather||null;state.weatherStatus=field.weather?'ready':'idle';state.cameraFileName=field.cameraFileName||'';updateCoordinates();
+  $('detailsCoordinates').textContent=state.lat.toFixed(6)+', '+state.lon.toFixed(6);
+  $('fieldName').value=field.name||'';$('cropSelect').value=field.crop||'';$('plantStage').value=field.plantStage||'';$('plantingDate').value=field.plantingDate||'';$('soilType').value=field.soilType||'';$('irrigationMethod').value=field.irrigationMethod||'';$('historyNotes').value=field.historyNotes||'';$('otherNotes').value=field.otherNotes||'';
+  const d=field.devices||{};$('hasLeafWetnessSensor').checked=!!d.leafWetness;$('hasClimateSensor').checked=!!d.climate;$('hasSoilMoistureSensor').checked=!!d.soilMoisture;$('hasFieldCamera').checked=!!d.camera;
+  const r=field.sensorReading||{};$('sensorObservedAt').value=r.observedAt||'';$('manualTemp').value=r.temperature??'';$('manualHumidity').value=r.humidity??'';$('manualLeafWetHours').value=r.leafWetHours??'';$('manualSoilMoisture').value=r.soilMoisture??'';
+  $('cameraFileName').textContent=state.cameraFileName?t('selectedPhoto',{name:state.cameraFileName}):'';$('cameraPreview').hidden=true;$('cropContinue').disabled=state.crop!=='tomato';syncDeviceVisibility();renderWeatherCard();
+}
+document.querySelectorAll('[data-add-field]').forEach(b=>b.addEventListener('click',startField));
+$('fieldList').addEventListener('click',e=>{const b=e.target.closest('[data-open-field]');if(!b)return;const f=account().fields.find(f=>f.id===b.dataset.openField);if(!f)return;loadField(f);showScreen('done');});
+$('cropSelect').addEventListener('change',e=>{state.crop=e.target.value;$('cropContinue').disabled=state.crop!=='tomato';});
+function updateCoordinates(){const has=state.lat!==null&&state.lon!==null;$('latValue').textContent=has?state.lat.toFixed(6):'—';$('lonValue').textContent=has?state.lon.toFixed(6):'—';$('manualLat').value=has?state.lat:'';$('manualLon').value=has?state.lon:'';$('saveLocationBtn').disabled=!has;}
+function drawMarker(){if(!map||state.lat===null)return;if(fieldMarker)fieldMarker.setLatLng([state.lat,state.lon]);else{fieldMarker=L.marker([state.lat,state.lon],{draggable:true}).addTo(map);fieldMarker.on('dragend',()=>{const p=fieldMarker.getLatLng();setFieldLocation(p.lat,p.lng);});}}
+function setFieldLocation(lat,lon,source='manual'){if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;state.lat=lat;state.lon=lon;updateCoordinates();drawMarker();$('locationStatus').classList.remove('error');$('locationStatus').textContent=t(source==='gps'?'locationFound':'pinPlaced');loadWeatherForLocation();}
+
+function round(value,digits=1){const p=10**digits;return Math.round(value*p)/p;}
+function renderWeatherCard(){
+  const selected=state.lat!==null&&state.lon!==null;$('weatherCard').hidden=!selected;if(!selected)return;
+  const status=state.weatherStatus;$('weatherMetrics').hidden=status!=='ready';$('retryWeather').hidden=status==='loading';
+  $('weatherStatusPill').className='status-pill'+(status==='ready'?' green':'');
+  if(status==='loading'){$('weatherStatusPill').textContent=t('weatherConnecting');$('weatherStatusText').textContent=t('weatherConnecting');return;}
+  if(status==='failed'){$('weatherStatusPill').textContent=t('weatherUnavailable');$('weatherStatusText').textContent=t('weatherUnavailableNote');return;}
+  if(status!=='ready'||!state.weather){$('weatherStatusPill').textContent=t('weatherPending');$('weatherStatusText').textContent='';return;}
+  const w=state.weather;$('weatherStatusPill').textContent=t('weatherReady');$('weatherStatusText').textContent='Open-Meteo · '+(w.timezone||'');$('weatherTemp').textContent=Number.isFinite(w.currentTemp)?w.currentTemp.toFixed(1)+' °C':'—';$('weatherHumidity').textContent=Number.isFinite(w.currentHumidity)?Math.round(w.currentHumidity)+'%':'—';$('weatherRain').textContent=Number.isFinite(w.rain24h)?w.rain24h.toFixed(1)+' mm':'—';$('weatherWetHours').textContent=Number.isFinite(w.estimatedWetHours)?w.estimatedWetHours+' h':'—';$('weatherWetTemp').textContent=Number.isFinite(w.avgWetTemp)?w.avgWetTemp.toFixed(1)+' °C':'—';
+}
+async function loadWeatherForLocation(){
+  if(state.lat===null||state.lon===null)return;const request=++weatherRequest;const lat=state.lat,lon=state.lon;state.weatherStatus='loading';state.weather=null;renderWeatherCard();
+  const fetcher=window.fetch||((typeof fetch==='function')?fetch:null);if(!fetcher){state.weatherStatus='failed';renderWeatherCard();return;}
+  const query='latitude='+encodeURIComponent(lat)+'&longitude='+encodeURIComponent(lon)+'&current=temperature_2m,relative_humidity_2m,precipitation&hourly=temperature_2m,relative_humidity_2m,precipitation&forecast_days=2&timezone=auto';
+  try{
+    const response=await fetcher('https://api.open-meteo.com/v1/forecast?'+query);if(!response.ok)throw new Error('weather-http');const data=await response.json();if(request!==weatherRequest||lat!==state.lat||lon!==state.lon)return;
+    const h=data.hourly||{},times=Array.isArray(h.time)?h.time:[],temps=Array.isArray(h.temperature_2m)?h.temperature_2m:[],humidity=Array.isArray(h.relative_humidity_2m)?h.relative_humidity_2m:[],rain=Array.isArray(h.precipitation)?h.precipitation:[];if(!times.length||!temps.length||!humidity.length)throw new Error('weather-data');
+    const currentTime=data.current?.time||times[0];let start=times.findIndex(x=>x>=currentTime);if(start<0)start=0;const end=Math.min(start+24,times.length);let rain24=0;const wetTemps=[];for(let i=start;i<end;i++){rain24+=Number(rain[i])||0;if(Number(humidity[i])>=90&&Number.isFinite(Number(temps[i])))wetTemps.push(Number(temps[i]));}
+    state.weather={source:'Open-Meteo',fetchedAt:Date.now(),timezone:data.timezone||'',currentTemp:Number.isFinite(Number(data.current?.temperature_2m))?Number(data.current.temperature_2m):null,currentHumidity:Number.isFinite(Number(data.current?.relative_humidity_2m))?Number(data.current.relative_humidity_2m):null,rain24h:round(rain24,1),estimatedWetHours:wetTemps.length,avgWetTemp:wetTemps.length?round(wetTemps.reduce((a,b)=>a+b,0)/wetTemps.length,1):null,wetnessMethod:'rh90_proxy'};state.weatherStatus='ready';
+  }catch(error){if(request!==weatherRequest)return;state.weather=null;state.weatherStatus='failed';}
+  renderWeatherCard();
+}
+
+async function ensureMap(){
+  if(map){drawMarker();if(state.lat!==null)map.setView([state.lat,state.lon],16);return map;}
+  $('mapError').hidden=true;
+  try{
+    if(!window.L){
+      if(!leafletLoading)leafletLoading=new Promise((resolve,reject)=>{
+        const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(css);
+        const js=document.createElement('script');js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';js.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';js.crossOrigin='';
+        const timeout=setTimeout(()=>reject(new Error('map-timeout')),12000);js.onload=()=>{clearTimeout(timeout);resolve();};js.onerror=()=>{clearTimeout(timeout);js.remove();reject(new Error('map-load'));};document.head.appendChild(js);
+      });await leafletLoading;
+    }
+    if(map)return map;
+    map=L.map('map',{zoomControl:true}).setView(state.lat===null?[22.8,79.0]:[state.lat,state.lon],state.lat===null?5:16);
+    const tiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+    let tileFailures=0;tiles.on('tileerror',()=>{if(++tileFailures>=3){$('mapError').textContent=t('tileError');$('mapError').hidden=false;}});
+    map.on('click',e=>setFieldLocation(e.latlng.lat,e.latlng.lng));drawMarker();return map;
+  }catch{$('mapError').textContent=t('mapLoadError');$('mapError').hidden=false;leafletLoading=null;return null;}
+}
+$('currentLocationBtn').addEventListener('click',()=>{
+  const request=++locationRequest;$('currentLocationBtn').disabled=true;$('locationStatus').classList.remove('error');$('locationStatus').textContent=t('locating');
+  const fail=()=>{if(request!==locationRequest)return;$('currentLocationBtn').disabled=false;$('locationStatus').classList.add('error');$('locationStatus').textContent=t('locationDenied');};
+  if(!navigator.geolocation){fail();return;}
+  navigator.geolocation.getCurrentPosition(p=>{if(request!==locationRequest)return;$('currentLocationBtn').disabled=false;setFieldLocation(p.coords.latitude,p.coords.longitude,'gps');if(map)map.setView([state.lat,state.lon],16);},fail,{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+});
+$('clearPinBtn').addEventListener('click',clearPin);
+$('applyCoordinates').addEventListener('click',()=>{const a=$('manualLat').value.trim(),b=$('manualLon').value.trim();const lat=Number(a),lon=Number(b);if(!a||!b||!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){setError('coordinateError','coordinateInvalid');return;}setError('coordinateError');setFieldLocation(lat,lon);if(map)map.setView([lat,lon],16);});
+$('saveLocationBtn').addEventListener('click',()=>{if(state.lat===null||state.lon===null)return;$('detailsCoordinates').textContent=state.lat.toFixed(6)+', '+state.lon.toFixed(6);showScreen('crop');});
+$('retryWeather').addEventListener('click',loadWeatherForLocation);
+$('changeFieldLocation').addEventListener('click',()=>showScreen('location'));
+const deviceCheckboxes=['hasLeafWetnessSensor','hasClimateSensor','hasSoilMoistureSensor','hasFieldCamera'];
+function syncDeviceVisibility(){if(!$('sensorReadings'))return;const hasSensor=$('hasLeafWetnessSensor').checked||$('hasClimateSensor').checked||$('hasSoilMoistureSensor').checked;$('sensorReadings').hidden=!hasSensor;$('cameraBlock').hidden=!$('hasFieldCamera').checked;}
+deviceCheckboxes.forEach(id=>$(id).addEventListener('change',syncDeviceVisibility));
+$('cameraInput').addEventListener('change',event=>{const file=event.target.files?.[0];setError('fieldDetailsError');if(!file){state.cameraFileName='';$('cameraFileName').textContent='';$('cameraPreview').hidden=true;return;}if(file.size>5*1024*1024){event.target.value='';state.cameraFileName='';$('cameraPreview').hidden=true;setError('fieldDetailsError','photoTooLarge');return;}state.cameraFileName=file.name;$('cameraFileName').textContent=t('selectedPhoto',{name:file.name});const reader=new FileReader();reader.onload=()=>{$('cameraPreview').src=reader.result;$('cameraPreview').hidden=false;};reader.readAsDataURL(file);});
+function optionalNumber(id,min,max){const raw=$(id).value.trim();if(!raw)return null;const value=Number(raw);if(!Number.isFinite(value)||value<min||value>max)throw new Error('range');return value;}
+$('fieldDetailsForm').addEventListener('submit',event=>{
+  event.preventDefault();if(state.crop!=='tomato'||state.lat===null||state.lon===null)return;
+  let readings;try{readings={observedAt:$('sensorObservedAt').value,temperature:optionalNumber('manualTemp',-20,65),humidity:optionalNumber('manualHumidity',0,100),leafWetHours:optionalNumber('manualLeafWetHours',0,24),soilMoisture:optionalNumber('manualSoilMoisture',0,100)};}catch{setError('fieldDetailsError','readingInvalid');return;}setError('fieldDetailsError');
+  const field={id:state.editingId||newId('FIELD-'),name:$('fieldName').value.trim().slice(0,40),crop:state.crop,lat:state.lat,lon:state.lon,weather:state.weather,plantStage:$('plantStage').value,plantingDate:$('plantingDate').value,soilType:$('soilType').value,irrigationMethod:$('irrigationMethod').value,historyNotes:$('historyNotes').value.trim().slice(0,400),otherNotes:$('otherNotes').value.trim().slice(0,400),devices:{leafWetness:$('hasLeafWetnessSensor').checked,climate:$('hasClimateSensor').checked,soilMoisture:$('hasSoilMoistureSensor').checked,camera:$('hasFieldCamera').checked},sensorReading:readings,cameraFileName:$('hasFieldCamera').checked?state.cameraFileName:''};
+  const i=account().fields.findIndex(x=>x.id===field.id);if(i>=0)account().fields[i]=field;else account().fields.push(field);state.editingId=field.id;persist();showScreen('done');toast(t('fieldSaved'));
+});
+function fillSummary(){const fields=account()?.fields||[];const index=Math.max(0,fields.findIndex(f=>f.id===state.editingId));const field=fields[index];if(!field)return;$('summaryFieldName').textContent=fieldLabel(field,index);$('summaryCrop').textContent=t('cropName');$('summaryStage').textContent=stageName(field.plantStage);$('summaryCoordinates').textContent=field.lat.toFixed(6)+', '+field.lon.toFixed(6);$('summaryWeather').textContent=field.weather?t('weatherSummary',{temp:Number.isFinite(field.weather.currentTemp)?field.weather.currentTemp.toFixed(1):'—',humidity:Number.isFinite(field.weather.currentHumidity)?Math.round(field.weather.currentHumidity):'—',wet:Number.isFinite(field.weather.estimatedWetHours)?field.weather.estimatedWetHours:'—'}):t('weatherPending');const count=deviceCount(field);$('summaryInputs').textContent=count?t('deviceSources',{count}):t('inputWeatherOnly');}
+$('editLocationBtn').addEventListener('click',()=>showScreen('location'));
+$('editDetailsBtn').addEventListener('click',()=>showScreen('crop'));
+$('backToFields').addEventListener('click',()=>showScreen('fields'));
+$('signOut').addEventListener('click',()=>{state.user=null;state.editingId=null;clearPin();pendingOtp=null;clearInterval(otpTimer);$('mobileNumber').value='';$('otpCode').value='';$('toast').hidden=true;try{sessionStorage.removeItem(SESSION_KEY);}catch{}showScreen('language',true);});
+window.addEventListener('popstate',()=>{let route=location.hash.slice(1);if(!$('screen-'+route))route=account()?'home':'language';showScreen(route,true);});
+loadSaved();applyLanguage();showScreen(account()?'home':'language',true);
+if(!storageAvailable)setTimeout(()=>toast(t('storageUnavailable')),100);
+
+</script>
+</body>
+</html>
