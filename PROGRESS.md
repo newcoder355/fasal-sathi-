@@ -27,3 +27,7 @@ Photo-based disease classification, direct hourly sensor ingestion, cloud accoun
 ## Latest update: direct entry (4 October 2026)
 
 At the user's request, the language page now opens first on every launch/reload; selecting a language goes straight to Home. Login/OTP markup, handlers, timers and the sign-out/account section were removed. Existing browser records and storage keys are preserved; an existing active or first local profile is selected automatically. Forecasting, fields, photos and alerts are otherwise unchanged. All 43 browser regression checks passed after this edit. Deployment verification is performed after pushing this checkpoint.
+
+## Latest update: neutral visual styling (4 October 2026)
+
+Changed decorative surfaces to white/grey and text/icons to neutral dark tones. Primary action buttons use muted green (#526b5c). The crop-problem prompt stays inside a white bordered card. Photos now uses the same bottom-tab styling, size and alignment as the other tabs. Fixed a mobile overflow caused by the hidden upload input and replaced its emoji with a monochrome icon. Targeted browser checks passed for matching navigation geometry, card/button colours, photo navigation, all bottom tabs, 320/390/1280px home layouts and photo-page overflow; home and photo screenshots visually reviewed. App logic and TOMCAST are unchanged.
