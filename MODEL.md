@@ -29,9 +29,9 @@ Forecasts expire after six hours or at the field's next local midnight. Old-form
 
 ## Photos, accounts and persistence
 
-Crop photos are compressed and stored locally as **unassessed** records. No diagnosis or confidence is invented. Earlier demo scan history is explicitly labelled as a demo and excluded from weather scores. Nearby sample outbreak cards have been removed.
+Crop photos are compressed locally and sent as base64 to the deployed Supabase Edge Function only when the farmer selects Check photo. Crop.health returns crop/disease suggestions, match probabilities, and optional reference symptoms, severity and treatment text. These are automated suggestions, not confirmed diagnoses or measurements of the photographed plant’s severity. Missing information is never invented. Results are saved locally with the photo; saving a disease assessment to a field retains the existing Supabase disease-report flow for nearby alerts. Earlier demo records remain labelled and never alter weather scores.
 
-The app starts with language selection, which opens the homepage directly. A local workspace is selected automatically, preserving the active or first existing profile. The login and OTP screens have been removed. Browser storage is not secure authentication, a server backup, or cross-device synchronisation. Storage failures are surfaced. Image diagnosis, cloud accounts, real-time sensor ingestion and community outbreak monitoring are not connected.
+The app starts with language selection, which opens the homepage directly. A local workspace is selected automatically, preserving the active or first existing profile. The login and OTP screens have been removed. Browser storage is not secure authentication, a server backup, or cross-device synchronisation. Storage failures are surfaced. Photo assessment and nearby report clustering are connected through Supabase. Cloud accounts and real-time sensor ingestion are not connected.
 
 ## Validation and sources
 

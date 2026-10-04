@@ -52,3 +52,10 @@ Changed decorative surfaces to white/grey and text/icons to neutral dark tones. 
 - New field location selection requests geolocation immediately, selects the returned position and centres the map at zoom 16. A saved field keeps its own pin. The current-location button remains available for retries; map taps and marker dragging remain available. Farmers confirm the pin before saving because their current position may not be their field.
 - Manual selection, clearing the pin or leaving the page invalidates pending GPS results. Permission denial never creates a fictional location.
 - Validation: 18 model tests and 64 browser checks passed, including granted/denied/retried/delayed GPS, hidden technical details in all three languages, saved field edits, weather refresh and mobile layouts. Preserved remote deletion of the old backup HTML and duplicate nojekyll file.
+
+## Real crop-photo assessment through the deployed Edge Function
+
+- Replaced the demo result selector and fixed confidence scores with POST /functions/v1/rapid-endpoint. Existing JPEG preview conversion is reused; only raw base64 is sent. The public Supabase key is an apikey header, never a Bearer token or Kindwise secret.
+- Added crop-scan.js for the actual proxy response (crop/diseases arrays) and raw provider response, optional detail normalization, error handling, timeout and cancellation. UI shows likely crop, top match, probability, reference symptoms/severity, treatments and alternative matches. Missing details remain explicitly unavailable.
+- Added loading, duplicate-request protection, retry and stale-result guards when navigating or choosing another image. Stored assessments include genuine results and match scores. Prior demo records remain labelled; weather calculations remain separate. Existing cloud disease reporting and latest outbreak loading changes are preserved.
+- All 25 unit/model tests and 70 mocked browser checks passed. One real proxy request returned HTTP 200 and the expected rich result structure. tests/scan-deployment.cjs provides an explicit opt-in live browser scan check using one provider identification and never submits a cloud report.
