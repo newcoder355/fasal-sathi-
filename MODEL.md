@@ -47,6 +47,10 @@ Software tests verify the calculation and app behaviour; they do **not** establi
 
 Run `node --test tests/tomcast.test.cjs`. Browser regression tests use Playwright: `node tests/browser.cjs` with `BASE_URL` pointing to this directory served over HTTP. The browser test starts a local static server automatically unless BASE_URL is supplied. `LIVE_WEATHER=1` enables a live API smoke check rather than a fixture.
 
+### Farmer-facing risk labels
+
+The UI shows Low (daily DSV 0–1), Moderate (2), High (3), or Very high (4), rather than numeric scores. The five-day label uses the highest daily score, not the sum. These are simplified presentation bands, not calibrated infection probabilities or disease severity categories. Low never means disease-free. Missing, stale, or unsupported weather is Unavailable. Internal DSV calculations and the completed-day history remain unchanged; cumulative DSV is not converted into an unsupported risk category and is no longer displayed to farmers.
+
 ### Verification on 1 October 2026
 
 18 model tests passed, including all 425 integer temperature/wet-hour table cases. 41 Chromium browser checks passed, including live Open-Meteo retrieval for Vidisha, five dated future forecasts, changing weather, incomplete responses, failed requests, stale-data refresh, field creation/edit/reload, migration of old fields and demo scans, photo save/retry, storage failure rollback, English/Hindi/Marathi, and layouts at 320/390/768/1280 px. A live cross-origin request returned five valid forecast days. This establishes tested software behaviour, not field diagnostic accuracy.
