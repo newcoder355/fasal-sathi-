@@ -36,10 +36,12 @@ const { chromium } = require(require.resolve('playwright', {
     }
     await page.locator('[data-lang="en"]').click();
     const result = await page.evaluate(async () => {
-      const weather = await Tomcast.fetchSnapshot(23.525, 77.808);
       const field = { id: 'deployment-check', name: 'Vidisha verification', crop: 'tomato', lat: 23.525, lon: 77.808, scanHistory: [] };
-      applyFieldWeather(field, weather);
       account().fields.push(field);
+      showScreen('home');
+      await refreshFieldForecast(field);
+      const weather = field.weather;
+      if (!weather) throw new Error('Automatic live weather refresh failed');
       openFieldDashboard(field.id);
       const forecast = calculateTomcast(field);
       return { currentDate: weather.currentDate, dates: forecast.days.map(day => day.date), available: forecast.available, risk: forecast.risk, total: forecast.total };

@@ -689,7 +689,7 @@
 
 
     /* Quiet neutral surfaces; muted green reserved for primary actions. */
-    :root { --action: #526b5c; --action-hover: #42584b; }
+    :root { --action: #d8eadb; --action-hover: #c8dfcc; }
     html, body { background: #ffffff; }
     .eyebrow { color: #686c68; }
     .bottom-nav { border-color: var(--line); box-shadow: 0 -2px 12px rgba(0,0,0,.025); }
@@ -698,7 +698,7 @@
     .quick-scan-card { background: #fff; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
     .quick-scan-card h2 { color: var(--text); }
     .quick-scan-card p { color: var(--muted); }
-    .btn-primary, .quick-scan-card .btn { background: var(--action); color: #fff; box-shadow: none; }
+    .btn-primary, .quick-scan-card .btn { background: var(--action); color: #244b30; box-shadow: none; }
     .btn-primary:hover, .quick-scan-card .btn:hover { background: var(--action-hover); }
     .btn-primary:disabled { background: #d9ddda; color: #626662; }
     .demo-banner, .notice, .weather-card, .optional-card,
@@ -984,7 +984,7 @@ const SESSION_KEY = 'fasalsathi.demo.session';
 const $ = id => document.getElementById(id);
 const state = {lang:'en',page:'language',user:null,crop:'',lat:null,lon:null,editingId:null,activeFieldId:null,weather:null,weatherStatus:'idle',cameraFileName:'',scanFileName:'',scanPreviewData:'',scanTargetFieldId:null,scanSavedFieldId:null,pendingScan:null};
 let db = {accounts:{},lang:'en'}, storageAvailable = true, toastTimer = null;
-let map = null, fieldMarker = null, leafletLoading = null, locationRequest = 0, weatherRequest = 0, fieldForecastRequest = 0;
+let map = null, fieldMarker = null, leafletLoading = null, locationRequest = 0, weatherRequest = 0;
 const t = (key,vars={}) => { let s=translations[state.lang][key] || translations.en[key] || key; for(const [k,v] of Object.entries(vars)) s=s.replaceAll('{'+k+'}',String(v)); return s; };
 const escapeHtml = value => String(value).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const newId = prefix => prefix+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
@@ -1033,6 +1033,7 @@ function showScreen(name,replace=false){
   if(name==='location') {ensureMap().then(()=>{if(map&&state.page==='location')map.invalidateSize();});}
   if(name!=='location') {locationRequest++;$('currentLocationBtn').disabled=false;}
   try { if(location.hash!=='#'+name) history[replace?'replaceState':'pushState']({screen:name},'','#'+name); } catch {}
+  refreshVisibleForecast();
   window.scrollTo({top:0,behavior:'instant'});
   const title=$('screen-'+name).querySelector('h1,h2');if(title){title.tabIndex=-1;title.focus({preventScroll:true});}
 }
@@ -1057,7 +1058,7 @@ function scanDate(value){if(!value)return t('notChecked');return new Date(value)
 function combinedShort(field,forecast){return t(forecast.available?'weatherOnlyStatus':'forecastUnavailable');}
 function renderFields(){
  const fields=account()?.fields||[];$('fieldsEmpty').hidden=fields.length>0;$('addAnotherField').hidden=!fields.length;
- $('fieldList').innerHTML=fields.map((f,i)=>{const forecast=calculateTomcast(f),last=f.scanHistory?.[0],risk=t(riskKey('risk',forecast.risk));return '<article class="field-card"><h3>'+escapeHtml(fieldLabel(f,i))+'</h3><p>'+escapeHtml(t('cropName')+' · '+stageName(f.plantStage))+'</p><div class="field-meta-row"><span class="status-pill">'+escapeHtml(forecast.stale?t('staleWeather'):risk)+'</span><span>'+escapeHtml(t('dsvFiveDay'))+': '+(forecast.total??'—')+'</span></div><div class="field-scan-summary">'+escapeHtml(last?t(last.prototype?'legacyPhoto':'photoRecorded')+' · '+scanDate(last.at):t('noScanYet'))+'</div><div class="field-card-actions"><button type="button" class="btn btn-primary" data-open-field="'+escapeHtml(f.id)+'">'+escapeHtml(t('openField'))+'</button><button type="button" class="btn btn-secondary" data-scan-field="'+escapeHtml(f.id)+'">📷 '+escapeHtml(t('navScan'))+'</button></div></article>';}).join('');
+ $('fieldList').innerHTML=fields.map((f,i)=>{const forecast=calculateTomcast(f),last=f.scanHistory?.[0],risk=t(riskKey('risk',forecast.risk));return '<article class="field-card"><h3>'+escapeHtml(fieldLabel(f,i))+'</h3><p>'+escapeHtml(t('cropName')+' · '+stageName(f.plantStage))+'</p><div class="field-meta-row"><span class="status-pill">'+escapeHtml(forecastRefreshLabel(f)||(forecast.stale?t('staleWeather'):risk))+'</span><span>'+escapeHtml(t('dsvFiveDay'))+': '+(forecast.total??'—')+'</span></div><div class="field-scan-summary">'+escapeHtml(last?t(last.prototype?'legacyPhoto':'photoRecorded')+' · '+scanDate(last.at):t('noScanYet'))+'</div><div class="field-card-actions"><button type="button" class="btn btn-primary" data-open-field="'+escapeHtml(f.id)+'">'+escapeHtml(t('openField'))+'</button><button type="button" class="btn btn-secondary" data-scan-field="'+escapeHtml(f.id)+'">📷 '+escapeHtml(t('navScan'))+'</button></div></article>';}).join('');
 }
 function resetDetailsForm(){
   $('fieldDetailsForm').reset();$('cropContinue').disabled=true;$('fieldName').value='';$('cameraFileName').textContent='';$('cameraPreview').hidden=true;$('cameraPreview').removeAttribute('src');state.cameraFileName='';setError('fieldDetailsError');syncDeviceVisibility();
@@ -1090,7 +1091,7 @@ function activeField(){return account()?.fields?.find(f=>f.id===state.activeFiel
 function calculateTomcast(field){return Tomcast.assess(field);}
 function riskKey(prefix,risk){return prefix+risk[0].toUpperCase()+risk.slice(1);}
 function fieldDateLabel(value){if(value==='today')return t('today');const date=new Date(value+'T12:00:00');return Number.isNaN(date.getTime())?value:date.toLocaleDateString(state.lang==='hi'?'hi-IN':state.lang==='mr'?'mr-IN':'en-IN',{day:'numeric',month:'short'});}
-function openFieldDashboard(id){const field=account()?.fields?.find(f=>f.id===id);if(!field)return;state.activeFieldId=id;state.editingId=id;$('fieldForecastStatus').textContent='';showScreen('field');if(!Tomcast.fresh(field.weather)||!calculateTomcast(field).available)refreshActiveFieldForecast();}
+function openFieldDashboard(id){const field=account()?.fields?.find(f=>f.id===id);if(!field)return;state.activeFieldId=id;state.editingId=id;$('fieldForecastStatus').textContent='';showScreen('field');}
 function scanHistoryMarkup(scans){return scans.length?scans.slice(0,5).map(s=>'<div class="history-item scan-history-row">'+(s.previewData&&/^data:image\/(jpeg|png|webp);base64,/.test(s.previewData)?'<img class="scan-thumb" src="'+escapeHtml(s.previewData)+'" alt="">':'')+'<div><strong>'+escapeHtml(t(s.prototype?'legacyPhoto':'photoRecorded'))+'</strong><span>'+escapeHtml(scanDate(s.at))+'</span></div></div>').join(''):'<p class="small">'+escapeHtml(t('noScans'))+'</p>';}
 
 function renderScanHistory(field){const scans=Array.isArray(field?.scanHistory)?field.scanHistory:[];$('scanHistory').innerHTML=scanHistoryMarkup(scans);}
@@ -1112,13 +1113,40 @@ function resetGlobalScanner(){scanReadRequest++;state.scanFileName='';state.scan
 function scannerFieldOptions(){const fields=account()?.fields||[];const selected=state.scanTargetFieldId||'';$('scanFieldSelect').innerHTML='<option value="">'+escapeHtml(t('chooseField'))+'</option>'+fields.map((f,i)=>'<option value="'+escapeHtml(f.id)+'"'+(f.id===selected?' selected':'')+'>'+escapeHtml(fieldLabel(f,i)+' — '+t('cropName'))+'</option>').join('')+'<option value="unlinked"'+(!selected?' selected':'')+'>'+escapeHtml(t('notLinked'))+'</option>';$('scanFieldSelect').value=selected||'unlinked';const f=fields.find(f=>f.id===selected);$('scanFieldSuggestion').textContent=f?t('scanFromField',{field:fieldLabel(f,fields.indexOf(f))}):t('scanFromQuick');}
 function renderScanner(){scannerFieldOptions();}
 function openScanner(fieldId=null){state.scanTargetFieldId=fieldId;resetGlobalScanner();showScreen('scan');}
-function renderAlerts(){const fields=account()?.fields||[];$('forecastAlertList').innerHTML=fields.length?fields.map((f,i)=>{const forecast=calculateTomcast(f);return '<div class="alerts-field-item"><strong>'+escapeHtml(fieldLabel(f,i))+'</strong><p>'+escapeHtml(forecast.stale?t('staleWeather'):t(riskKey('risk',forecast.risk)))+' · '+(forecast.total??'—')+' DSV</p><button class="text-button" data-alert-field="'+escapeHtml(f.id)+'">'+escapeHtml(t('openField'))+' →</button></div>';}).join(''):'<p class="small">'+escapeHtml(t('noForecastFields'))+'</p>';}
-async function refreshActiveFieldForecast(){
- const field=activeField();if(!field)return;const request=++fieldForecastRequest,lat=field.lat,lon=field.lon;$('refreshFieldForecast').disabled=true;$('fieldForecastStatus').textContent=t('forecastRefreshing');
- try{const weather=await fetchWeatherSnapshot(lat,lon);if(request!==fieldForecastRequest||field!==activeField()||field.lat!==lat||field.lon!==lon)return;applyFieldWeather(field,weather);const saved=persist();renderFieldDashboard();renderFields();renderAlerts();$('fieldForecastStatus').textContent=t(saved?'forecastUpdated':'storageUnavailable');}
- catch{if(request===fieldForecastRequest&&field===activeField()){$('fieldForecastStatus').textContent=t('forecastFailed');renderFieldDashboard();}}
- finally{if(request===fieldForecastRequest)$('refreshFieldForecast').disabled=false;}
+function renderAlerts(){const fields=account()?.fields||[];$('forecastAlertList').innerHTML=fields.length?fields.map((f,i)=>{const forecast=calculateTomcast(f);return '<div class="alerts-field-item"><strong>'+escapeHtml(fieldLabel(f,i))+'</strong><p>'+escapeHtml(forecastRefreshLabel(f)||(forecast.stale?t('staleWeather'):t(riskKey('risk',forecast.risk))))+' · '+(forecast.total??'—')+' DSV</p><button class="text-button" data-alert-field="'+escapeHtml(f.id)+'">'+escapeHtml(t('openField'))+' →</button></div>';}).join(''):'<p class="small">'+escapeHtml(t('noForecastFields'))+'</p>';}
+// One request per saved field/location; screen changes must not lose its result.
+const forecastRefreshes=new WeakMap();
+function forecastRefreshLabel(field){const r=forecastRefreshes.get(field);return r?.pending?t('forecastRefreshing'):r?.status==='forecastFailed'?t('forecastFailed'):null;}
+function renderForecastViews(){
+ renderHome();renderFields();renderAlerts();
+ if(activeField()){
+  renderFieldDashboard();const r=forecastRefreshes.get(activeField());
+  $('refreshFieldForecast').disabled=!!r?.pending;
+  $('fieldForecastStatus').textContent=r?.status?t(r.status):'';
+ }
 }
+function refreshFieldForecast(field,force=false){
+ const previous=forecastRefreshes.get(field),lat=field.lat,lon=field.lon;
+ if(previous&&previous.lat===lat&&previous.lon===lon){
+  if(previous.pending)return previous.promise;
+  if(!force&&Date.now()-previous.at<60000)return Promise.resolve();
+ }
+ if(!force&&Tomcast.fresh(field.weather))return Promise.resolve();
+ const owner=account(),refresh={lat,lon,at:Date.now(),pending:true,status:'forecastRefreshing'};
+ forecastRefreshes.set(field,refresh);
+ refresh.promise=(async()=>{
+  try{
+   const weather=await fetchWeatherSnapshot(lat,lon);
+   if(!owner?.fields.includes(field)||field.lat!==lat||field.lon!==lon||forecastRefreshes.get(field)!==refresh)return;
+   applyFieldWeather(field,weather);
+   if(state.editingId===field.id&&state.lat===lat&&state.lon===lon){state.weather=weather;state.weatherStatus='ready';}
+   refresh.status=persist()?'forecastUpdated':'storageUnavailable';
+  }catch{refresh.status='forecastFailed';}
+  finally{refresh.pending=false;refresh.at=Date.now();renderForecastViews();}
+ })();
+ renderForecastViews();return refresh.promise;
+}
+function refreshActiveFieldForecast(){const field=activeField();return field?refreshFieldForecast(field,true):Promise.resolve();}
 
 function renderWeatherCard(){
   const selected=state.lat!==null&&state.lon!==null;$('weatherCard').hidden=!selected;if(!selected)return;
@@ -1200,7 +1228,11 @@ $('scanAnother').addEventListener('click',()=>{state.scanTargetFieldId=null;rese
 $('forecastAlertList').addEventListener('click',e=>{const b=e.target.closest('[data-alert-field]');if(b)openFieldDashboard(b.dataset.alertField);});
 
 window.addEventListener('popstate',()=>{let route=location.hash.slice(1);if(!$('screen-'+route))route=account()?'home':'language';showScreen(route,true);});
-function refreshVisibleForecast(){if(state.page==='field'&&activeField()){renderFieldDashboard();if(!Tomcast.fresh(activeField().weather)&&!$('refreshFieldForecast').disabled)refreshActiveFieldForecast();}else if(state.page==='fields')renderFields();else if(state.page==='alerts')renderAlerts();}
+function refreshVisibleForecast(){
+ if(!account()||!['home','fields','alerts','field'].includes(state.page))return;
+ renderForecastViews();
+ for(const field of account().fields)if(!Tomcast.fresh(field.weather))refreshFieldForecast(field);
+}
 window.addEventListener('online',refreshVisibleForecast);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshVisibleForecast();});setInterval(()=>{if(!document.hidden)refreshVisibleForecast();},60000);
 loadSaved();applyLanguage();showScreen('language',true);
 if(!storageAvailable)setTimeout(()=>toast(t('storageUnavailable')),100);

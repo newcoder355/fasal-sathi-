@@ -31,3 +31,11 @@ At the user's request, the language page now opens first on every launch/reload;
 ## Latest update: neutral visual styling (4 October 2026)
 
 Changed decorative surfaces to white/grey and text/icons to neutral dark tones. Primary action buttons use muted green (#526b5c). The crop-problem prompt stays inside a white bordered card. Photos now uses the same bottom-tab styling, size and alignment as the other tabs. Fixed a mobile overflow caused by the hidden upload input and replaced its emoji with a monochrome icon. Targeted browser checks passed for matching navigation geometry, card/button colours, photo navigation, all bottom tabs, 320/390/1280px home layouts and photo-page overflow; home and photo screenshots visually reviewed. App logic and TOMCAST are unchanged.
+
+
+## Soft light-green actions and automatic weather refresh
+
+- Replaced dark muted green actions with a soft light-green background (#d8eadb) and dark readable text. Kept white surfaces, outlined cards and equal bottom navigation tabs.
+- Fixed expired saved forecasts remaining stuck on Home/Fields/Alerts: visible main screens now fetch missing or expired weather automatically, including on return to the app and periodic foreground checks.
+- Shared in-flight requests per field, persisted results after screen changes, guarded changed/deleted fields, and synchronized an open details edit with refreshed weather. Failed requests retain unavailable/stale scores and show the connection/retry message; automatic attempts have a one-minute cooldown, while manual retry remains immediate.
+- Validation: 18 model tests (including all 425 table combinations), 49 browser checks, and mobile/desktop style checks passed. Added regression coverage for background refresh, navigation deduplication, persistence, legacy cache migration and fresh-cache reuse. Deployment check now exercises automatic real-weather loading.
