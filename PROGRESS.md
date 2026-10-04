@@ -45,3 +45,10 @@ Changed decorative surfaces to white/grey and text/icons to neutral dark tones. 
 - Fixed expired saved forecasts remaining stuck on Home/Fields/Alerts: visible main screens now fetch missing or expired weather automatically, including on return to the app and periodic foreground checks.
 - Shared in-flight requests per field, persisted results after screen changes, guarded changed/deleted fields, and synchronized an open details edit with refreshed weather. Failed requests retain unavailable/stale scores and show the connection/retry message; automatic attempts have a one-minute cooldown, while manual retry remains immediate.
 - Validation: 18 model tests (including all 425 table combinations), 49 browser checks, and mobile/desktop style checks passed. Added regression coverage for background refresh, navigation deduplication, persistence, legacy cache migration and fresh-cache reuse. Deployment check now exercises automatic real-weather loading.
+
+## Farmer-facing screens and automatic field location
+
+- Removed technical weather readings, latitude/longitude, manual coordinate entry and model names from farmer-facing screens. Retained readable risk labels, update time, simple forecast availability and existing photo records. Technical model documentation remains separate.
+- New field location selection requests geolocation immediately, selects the returned position and centres the map at zoom 16. A saved field keeps its own pin. The current-location button remains available for retries; map taps and marker dragging remain available. Farmers confirm the pin before saving because their current position may not be their field.
+- Manual selection, clearing the pin or leaving the page invalidates pending GPS results. Permission denial never creates a fictional location.
+- Validation: 18 model tests and 64 browser checks passed, including granted/denied/retried/delayed GPS, hidden technical details in all three languages, saved field edits, weather refresh and mobile layouts. Preserved remote deletion of the old backup HTML and duplicate nojekyll file.

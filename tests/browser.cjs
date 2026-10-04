@@ -9,7 +9,7 @@ const {fixture,NOW}=require('./fixture.cjs');
  const browser=await pw.chromium.launch(options);let passed=0;const errors=[];
  const check=(name,condition)=>{assert.ok(condition,name);console.log('PASS '+name);passed++;};
  try{
- const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:390,height:844}});const page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',req=>{if(req.url().startsWith('https://api.open-meteo.com'))console.log('Weather network:',req.failure()?.errorText);});
+ const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:390,height:844},permissions:['geolocation'],geolocation:{latitude:23.525,longitude:77.808}});const page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',req=>{if(req.url().startsWith('https://api.open-meteo.com'))console.log('Weather network:',req.failure()?.errorText);});
  await page.clock.install({time:NOW});let requests=0,mode='wet';
  await page.route('https://api.open-meteo.com/**',async route=>{requests++;if(mode==='failed')return route.fulfill({status:503,body:'unavailable'});const f=fixture();if(mode==='dry')f.hourly.relative_humidity_2m.fill(50);if(mode==='missing')f.hourly.temperature_2m[15*24]=null;await route.fulfill({json:f});});
  // Maps are independent of the manual coordinate and forecast flow.
@@ -17,8 +17,7 @@ const {fixture,NOW}=require('./fixture.cjs');
  await page.goto(process.env.BASE_URL||'http://127.0.0.1:8080');check('language page opens first',await page.locator('#screen-language').evaluate(el=>el.classList.contains('active')));check('login and OTP screens removed',await page.locator('#screen-login,#screen-otp,#signOut').count()===0);await page.locator('[data-lang="en"]').click();
  check('language selection opens homepage directly',await page.locator('#screen-home').evaluate(el=>el.classList.contains('active')));
  await page.locator('#bottomNav [data-route="fields"]').click();await page.locator('[data-add-field]').filter({visible:true}).first().click();
- await page.locator('.manual-coords summary').click();await page.locator('#manualLat').fill('23.525');await page.locator('#manualLon').fill('77.808');
- const manualId=await page.evaluate(()=>document.getElementById('manualLat').closest('form')?.id);if(manualId)await page.locator('#'+manualId).evaluate(f=>f.requestSubmit());else await page.locator('#applyCoordinates').click();
+ check('coordinate entry is hidden',await page.locator('.manual-coords').isHidden());
  await page.waitForFunction(()=>state.weatherStatus==='ready');check('weather API request uses field coordinates',requests>0);
  await page.locator('#saveLocationBtn').click();await page.locator('#cropSelect').selectOption('tomato');
  await page.locator('#fieldName').fill('Vidisha tomatoes');await page.locator('#fieldDetailsForm').evaluate(f=>f.requestSubmit());
@@ -72,6 +71,31 @@ const {fixture,NOW}=require('./fixture.cjs');
  const legacy=await context.newPage();await legacy.route('https://api.open-meteo.com/**',route=>route.fulfill({json:fixture()}));await legacy.goto(process.env.BASE_URL);await legacy.clock.install({time:NOW});
  await legacy.evaluate(()=>{localStorage.setItem('fasalsathi.demo.v2',JSON.stringify({lang:'en',accounts:{'9876543210':{id:'OLD',fields:[{id:'old-field',name:'Existing tomatoes',crop:'tomato',lat:23.525,lon:77.808,weather:{tomcastDays:[{date:'2026-09-30',wetHours:24,avgWetTemp:23}]},scanHistory:[{at:1,prototype:true,confidence:87,result:'early_blight_like'}]}]}}}));sessionStorage.setItem('fasalsathi.demo.session','9876543210');});await legacy.reload();await legacy.locator('[data-lang="en"]').click();await legacy.locator('#bottomNav [data-route="fields"]').click();check('legacy field records retained',(await legacy.locator('#fieldList').innerText()).includes('Existing tomatoes'));await legacy.waitForFunction(()=>Tomcast.fresh(account().fields[0].weather));check('legacy weather refreshes without opening field',await legacy.evaluate(()=>Tomcast.fresh(account().fields[0].weather)));await legacy.locator('[data-open-field]').click();await legacy.waitForFunction(()=>!document.getElementById('refreshFieldForecast').disabled);check('legacy weather refresh migrates',(await legacy.locator('#tomcastTotal').innerText())==='Very high');check('legacy demo is labelled, never diagnosed',(await legacy.locator('#scanHistory').textContent()).includes('Earlier demo'));
  await legacy.close();
+ // GPS and manual selection must cooperate even with delayed or denied permission.
+ await page.evaluate(()=>{
+  window.realGeolocation=navigator.geolocation;
+  window.gpsRequests=[];
+  Object.defineProperty(navigator,'geolocation',{configurable:true,value:{getCurrentPosition:(success,error)=>window.gpsRequests.push({success,error})}});
+  window.mapViews=[];map={setView:(point,zoom)=>window.mapViews.push({point,zoom}),invalidateSize:()=>{},removeLayer:()=>{}};
+  window.realDrawMarker=drawMarker;drawMarker=()=>{};
+  startField();
+ });
+ check('new field requests location automatically',await page.evaluate(()=>gpsRequests.length===1));
+ await page.evaluate(()=>gpsRequests[0].error({code:1}));
+ check('denied location keeps retry available',await page.locator('#currentLocationBtn').isEnabled());
+ check('denied location cannot save an invented pin',await page.locator('#saveLocationBtn').isDisabled());
+ await page.locator('#currentLocationBtn').click();await page.evaluate(()=>gpsRequests[1].success({coords:{latitude:23.52,longitude:77.81}}));
+ check('GPS selects position and zooms map',await page.evaluate(()=>state.lat===23.52&&state.lon===77.81&&mapViews.at(-1).zoom===16));
+ await page.locator('#currentLocationBtn').click();await page.evaluate(()=>{setFieldLocation(23.6,77.9);gpsRequests[2].success({coords:{latitude:1,longitude:2}});});
+ check('delayed GPS cannot overwrite manually selected pin',await page.evaluate(()=>state.lat===23.6&&state.lon===77.9));
+ await page.locator('#currentLocationBtn').click();await page.locator('#bottomNav [data-route="home"]').click();await page.evaluate(()=>gpsRequests[3].success({coords:{latitude:1,longitude:2}}));
+ check('leaving location page ignores pending GPS',await page.evaluate(()=>state.lat===23.6));
+ await page.evaluate(()=>{Object.defineProperty(navigator,'geolocation',{configurable:true,value:window.realGeolocation});drawMarker=window.realDrawMarker;map=null;openFieldDashboard(account().fields[0].id);});
+ for(const lang of ['en','hi','mr']){
+  await page.locator('#languageSwitch').selectOption(lang);
+  check('farmer dashboard hides technical inputs '+lang,await page.locator('#tomcastWetHours').isHidden()&&await page.locator('#tomcastSource').isHidden());
+  check('farmer dashboard hides model names and coordinates '+lang,!/TOMCAST|23\.525|77\.808|≥90%/.test(await page.locator('#screen-field').innerText()));
+ }
  check('no JavaScript runtime errors',errors.length===0);
  if(process.env.LIVE_WEATHER==='1'){
    const liveContext=await browser.newContext({ignoreHTTPSErrors:true});const livePage=await liveContext.newPage();await livePage.goto(process.env.BASE_URL);livePage.on('console',m=>{if(m.type()==='error')console.log('Live browser:',m.text().slice(0,250));});
