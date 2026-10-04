@@ -1170,10 +1170,15 @@ async function recentDiseaseReports(){
  if(outbreakCache.promise)return outbreakCache.promise;
  outbreakCache.promise=(async()=>{
    if(!supabaseClient)return [];
-   const since=new Date(Date.now()-5*24*60*60*1000).toISOString();
-   const {data,error}=await supabaseClient.from('disease_reports').select('field_id,disease,latitude,longitude,confidence,created_at').gte('created_at',since);
+   const {data,error}=await supabaseClient.from('disease_reports').select('*');
    if(error)throw error;
-   const rows=(data||[]).filter(r=>r&&r.field_id&&r.disease&&Number.isFinite(Number(r.latitude))&&Number.isFinite(Number(r.longitude)));
+   const cutoff=Date.now()-5*24*60*60*1000;
+   const rows=(data||[]).filter(r=>{
+     if(!r||!r.field_id||!r.disease||!Number.isFinite(Number(r.latitude))||!Number.isFinite(Number(r.longitude)))return false;
+     if(!r.created_at)return true;
+     const stamp=new Date(r.created_at).getTime();
+     return !Number.isFinite(stamp)||stamp>=cutoff;
+   });
    outbreakCache={at:Date.now(),promise:null,reports:rows};
    return rows;
  })().catch(error=>{console.warn('Supabase outbreak read failed:',error);outbreakCache.promise=null;throw error;});
@@ -1214,8 +1219,9 @@ async function loadNearbyOutbreaks(){
   });
   cards.sort((a,b)=>b.count-a.count);
   box.innerHTML=cards.length?cards.map(c=>'<div class="alerts-field-item"><strong>'+escapeHtml(c.level.label+' · '+c.disease)+'</strong><p>'+escapeHtml(c.count+' unique affected fields within 5 km of '+fieldLabel(c.field,c.index)+'. Farthest matched report: '+c.maxDistance.toFixed(1)+' km.')+'</p><p class="small">'+escapeHtml(c.level.detail)+'</p></div>').join(''):'<p class="small">No nearby disease reports found within 5 km in the last 5 days.</p>';
- }catch{
-  box.innerHTML='<p class="small">Nearby reports could not be loaded. Check your internet connection and try again.</p>';
+ }catch(error){
+  const message=error?.message||error?.details||'Unknown database error';
+  box.innerHTML='<p class="small">Nearby reports could not be loaded.</p><p class="small">Database message: '+escapeHtml(String(message))+'</p>';
  }
 }
 // One request per saved field/location; screen changes must not lose its result.
