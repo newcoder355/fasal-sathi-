@@ -830,11 +830,11 @@
           <div id="scanSavedPanel" class="combined-card" hidden><div class="eyebrow" data-i18n="savedLabel">SAVED</div><h2 id="scanSavedTitle">—</h2><p id="scanSavedText"></p><div class="actions"><button type="button" class="btn btn-primary" id="viewUpdatedField" data-i18n="viewUpdatedField">View updated field</button><button type="button" class="btn btn-secondary" id="scanAnother" data-i18n="scanAnother">Scan another</button></div></div>
         </section>
       </section><section class="screen" id="screen-alerts">
-        <div class="section-head"><div class="eyebrow" data-i18n="alertsForecastsLabel">ALERTS & FORECASTS</div><h1 data-i18n="alertsTitle">Alerts and forecasts</h1><p data-i18n="alertsSubtitle">Field forecasts and sample nearby outbreak updates in one place.</p></div>
+        <div class="section-head"><div class="eyebrow" data-i18n="alertsForecastsLabel">ALERTS & FORECASTS</div><h1 data-i18n="alertsTitle">Alerts and forecasts</h1><p>Field forecasts and real nearby disease-report clustering from the last 5 days.</p></div>
         <div class="section-row"><h2 data-i18n="yourFieldForecasts">Your field forecasts</h2></div><div id="forecastAlertList" class="alerts-field-list"></div>
-        <div hidden class="section-row"><h2 data-i18n="nearbyUpdates">Nearby alerts</h2><span class="sample-pill" data-i18n="sampleData">Sample data</span></div>
-
-
+        <div class="section-row"><h2>Nearby outbreak watch</h2><span class="sample-pill">Live reports</span></div>
+        <div id="nearbyOutbreakList" class="alerts-field-list"><p class="small">Checking nearby reports…</p></div>
+        <p class="small" style="margin:12px 0 22px">Prototype rule: same disease, recent reports, unique fields, and distance from your saved field. This is an outbreak watch, not an official confirmed outbreak.</p>
         <button type="button" class="btn btn-secondary full" data-route="support" data-i18n="needHelp">Need extension support?</button>
       </section><section class="screen" id="screen-done"><div class="complete"><div class="success-icon">✓</div><h2 data-i18n="doneTitle">Your field is ready</h2><p data-i18n="doneSubtitle">Location, crop details and available readings have been saved on this device.</p><div class="summary"><div class="summary-row"><span data-i18n="summaryFieldName">Field</span><strong id="summaryFieldName">—</strong></div><div class="summary-row"><span data-i18n="selectedCrop">Crop</span><strong id="summaryCrop">—</strong></div><div class="summary-row"><span data-i18n="summaryStage">Plant stage</span><strong id="summaryStage">—</strong></div><div class="summary-row" hidden><span data-i18n="fieldCoordinates">Field coordinates</span><strong id="summaryCoordinates">—</strong></div><div class="summary-row" hidden><span data-i18n="summaryWeather">Weather input</span><strong id="summaryWeather">—</strong></div><div class="summary-row" hidden><span data-i18n="summaryInputs">Optional devices</span><strong id="summaryInputs">—</strong></div></div><div class="next-module" data-i18n="fieldToolsReady">Your field is ready. Open its tools to run the TOMCAST forecast or check visible symptoms with the camera demo.</div><div class="actions"><button type="button" class="btn btn-primary" id="openFieldTools" data-i18n="openFieldTools">Open forecast & scan</button><button type="button" class="btn btn-secondary" id="editLocationBtn" data-i18n="editLocation">Edit location</button><button type="button" class="btn btn-secondary" id="editDetailsBtn" data-i18n="editDetails">Edit details</button><button type="button" class="btn btn-primary" id="backToFields" data-i18n="backToFields">Back to fields</button></div></div><div class="footer-note" data-i18n="localOnly">Saved on this device only.</div></section></main><nav id="bottomNav" class="bottom-nav" hidden aria-label="Main navigation" data-i18n-aria="mainNavigation"><button type="button" class="nav-item" data-route="home"><svg class="icon" aria-hidden="true"><use href="#i-home"></use></svg><span data-i18n="navHome">Home</span></button><button type="button" class="nav-item" data-route="fields"><svg class="icon" aria-hidden="true"><use href="#i-fields"></use></svg><span data-i18n="navFields">Fields</span></button><button type="button" class="nav-item" data-route="scan"><svg class="icon" aria-hidden="true"><use href="#i-scan"></use></svg><span data-i18n="navScan">Scan</span></button><button type="button" class="nav-item" data-route="alerts"><svg class="icon" aria-hidden="true"><use href="#i-bell"></use></svg><span data-i18n="navAlerts">Alerts</span></button></nav><div id="toast" class="toast" role="status" aria-live="polite" hidden></div></div><noscript>This prototype needs JavaScript enabled in your browser.</noscript><script src="tomcast.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const SUPABASE_URL = "https://cyopgofpflgnhzgmvynb.supabase.co";
@@ -1156,7 +1156,68 @@ function resetGlobalScanner(){scanReadRequest++;state.scanFileName='';state.scan
 function scannerFieldOptions(){const fields=account()?.fields||[];const selected=state.scanTargetFieldId||'';$('scanFieldSelect').innerHTML='<option value="">'+escapeHtml(t('chooseField'))+'</option>'+fields.map((f,i)=>'<option value="'+escapeHtml(f.id)+'"'+(f.id===selected?' selected':'')+'>'+escapeHtml(fieldLabel(f,i)+' — '+t('cropName'))+'</option>').join('')+'<option value="unlinked"'+(!selected?' selected':'')+'>'+escapeHtml(t('notLinked'))+'</option>';$('scanFieldSelect').value=selected||'unlinked';const f=fields.find(f=>f.id===selected);$('scanFieldSuggestion').textContent=f?t('scanFromField',{field:fieldLabel(f,fields.indexOf(f))}):t('scanFromQuick');}
 function renderScanner(){scannerFieldOptions();}
 function openScanner(fieldId=null){state.scanTargetFieldId=fieldId;resetGlobalScanner();showScreen('scan');}
-function renderAlerts(){const fields=account()?.fields||[];$('forecastAlertList').innerHTML=fields.length?fields.map((f,i)=>{const forecast=calculateTomcast(f);return '<div class="alerts-field-item"><strong>'+escapeHtml(fieldLabel(f,i))+'</strong><p>'+escapeHtml(forecastRefreshLabel(f)||(forecast.stale?t('staleWeather'):t(riskKey('risk',forecast.risk))))+'</p><button class="text-button" data-alert-field="'+escapeHtml(f.id)+'">'+escapeHtml(t('openField'))+' →</button></div>';}).join(''):'<p class="small">'+escapeHtml(t('noForecastFields'))+'</p>';}
+function renderAlerts(){const fields=account()?.fields||[];$('forecastAlertList').innerHTML=fields.length?fields.map((f,i)=>{const forecast=calculateTomcast(f);return '<div class="alerts-field-item"><strong>'+escapeHtml(fieldLabel(f,i))+'</strong><p>'+escapeHtml(forecastRefreshLabel(f)||(forecast.stale?t('staleWeather'):t(riskKey('risk',forecast.risk))))+'</p><button class="text-button" data-alert-field="'+escapeHtml(f.id)+'">'+escapeHtml(t('openField'))+' →</button></div>';}).join(''):'<p class="small">'+escapeHtml(t('noForecastFields'))+'</p>';if($('nearbyOutbreakList'))loadNearbyOutbreaks();}
+
+function haversineKm(lat1,lon1,lat2,lon2){
+ const R=6371,toRad=v=>v*Math.PI/180;
+ const dLat=toRad(lat2-lat1),dLon=toRad(lon2-lon1);
+ const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+ return 2*R*Math.asin(Math.sqrt(a));
+}
+let outbreakCache={at:0,promise:null,reports:null};
+async function recentDiseaseReports(){
+ if(outbreakCache.reports&&Date.now()-outbreakCache.at<60000)return outbreakCache.reports;
+ if(outbreakCache.promise)return outbreakCache.promise;
+ outbreakCache.promise=(async()=>{
+   if(!supabaseClient)return [];
+   const since=new Date(Date.now()-5*24*60*60*1000).toISOString();
+   const {data,error}=await supabaseClient.from('disease_reports').select('field_id,disease,latitude,longitude,confidence,created_at').gte('created_at',since);
+   if(error)throw error;
+   const rows=(data||[]).filter(r=>r&&r.field_id&&r.disease&&Number.isFinite(Number(r.latitude))&&Number.isFinite(Number(r.longitude)));
+   outbreakCache={at:Date.now(),promise:null,reports:rows};
+   return rows;
+ })().catch(error=>{console.warn('Supabase outbreak read failed:',error);outbreakCache.promise=null;throw error;});
+ return outbreakCache.promise;
+}
+function outbreakLevel(count,weatherRisk){
+ if(count>=3&&(weatherRisk==='high'||weatherRisk==='veryHigh'))return {label:'High outbreak risk',detail:'Multiple nearby reports + favourable TOMCAST weather'};
+ if(count>=3)return {label:'Outbreak watch',detail:'3 or more unique nearby fields reported the same disease'};
+ if(count===2)return {label:'Nearby activity',detail:'2 unique nearby fields reported the same disease'};
+ if(count===1)return {label:'Isolated report',detail:'1 nearby field reported this disease'};
+ return null;
+}
+async function loadNearbyOutbreaks(){
+ const box=$('nearbyOutbreakList');if(!box)return;
+ const fields=account()?.fields||[];
+ if(!fields.length){box.innerHTML='<p class="small">Add a field location to check nearby disease activity.</p>';return;}
+ box.innerHTML='<p class="small">Checking nearby reports…</p>';
+ try{
+  const reports=await recentDiseaseReports();
+  const cards=[];
+  fields.forEach((field,index)=>{
+    if(!Number.isFinite(Number(field.lat))||!Number.isFinite(Number(field.lon)))return;
+    const byDisease=new Map();
+    reports.forEach(r=>{
+      const distance=haversineKm(Number(field.lat),Number(field.lon),Number(r.latitude),Number(r.longitude));
+      if(distance>5)return;
+      if(!byDisease.has(r.disease))byDisease.set(r.disease,new Map());
+      const m=byDisease.get(r.disease),prev=m.get(r.field_id);
+      if(!prev||distance<prev.distance)m.set(r.field_id,{...r,distance});
+    });
+    const weatherRisk=calculateTomcast(field).risk;
+    for(const [disease,unique] of byDisease.entries()){
+      const count=unique.size,level=outbreakLevel(count,weatherRisk);
+      if(!level)return;
+      const maxDistance=Math.max(...[...unique.values()].map(x=>x.distance));
+      cards.push({count,field,index,disease,level,maxDistance,weatherRisk});
+    }
+  });
+  cards.sort((a,b)=>b.count-a.count);
+  box.innerHTML=cards.length?cards.map(c=>'<div class="alerts-field-item"><strong>'+escapeHtml(c.level.label+' · '+c.disease)+'</strong><p>'+escapeHtml(c.count+' unique affected fields within 5 km of '+fieldLabel(c.field,c.index)+'. Farthest matched report: '+c.maxDistance.toFixed(1)+' km.')+'</p><p class="small">'+escapeHtml(c.level.detail)+'</p></div>').join(''):'<p class="small">No nearby disease reports found within 5 km in the last 5 days.</p>';
+ }catch{
+  box.innerHTML='<p class="small">Nearby reports could not be loaded. Check your internet connection and try again.</p>';
+ }
+}
 // One request per saved field/location; screen changes must not lose its result.
 const forecastRefreshes=new WeakMap();
 function forecastRefreshLabel(field){const r=forecastRefreshes.get(field);return r?.pending?t('forecastRefreshing'):r?.status==='forecastFailed'?t('forecastFailed'):null;}
@@ -1267,7 +1328,7 @@ $('globalScanInput').addEventListener('change',async event=>{
 });
 $('runGlobalScan').addEventListener('click',()=>{if(!state.scanFileName||!state.scanPreviewData)return;state.pendingScan={id:newId('PHOTO-'),at:Date.now(),fileName:state.scanFileName,result:'unassessed',confidence:null,previewData:state.scanPreviewData};$('globalScanResult').hidden=false;$('scanLinkPanel').hidden=true;if($('demoDiseaseSelect'))$('demoDiseaseSelect').value='';if($('demoScanResultTitle'))$('demoScanResultTitle').textContent='Choose a demo result';if($('demoScanConfidence'))$('demoScanConfidence').textContent='—';setScanStep(3);$('globalScanResult').scrollIntoView?.({behavior:'smooth',block:'center'});});
 $('demoDiseaseSelect').addEventListener('change',()=>{if(!state.pendingScan)return;const disease=$('demoDiseaseSelect').value;if(!disease){state.pendingScan.result='unassessed';state.pendingScan.confidence=null;$('demoScanResultTitle').textContent='Choose a demo result';$('demoScanConfidence').textContent='—';$('scanLinkPanel').hidden=true;return;}const confidence=disease==='Healthy'?95:88;state.pendingScan.result=disease;state.pendingScan.confidence=confidence;$('demoScanResultTitle').textContent=disease;$('demoScanConfidence').textContent=confidence+'%';scannerFieldOptions();$('scanLinkPanel').hidden=false;$('scanLinkPanel').scrollIntoView?.({behavior:'smooth',block:'center'});});
-$('saveGlobalScan').addEventListener('click',()=>{if(!state.pendingScan)return;const savedScan=state.pendingScan,value=$('scanFieldSelect').value,fields=account().fields;let field=fields.find(f=>f.id===value);const oldScans=field?.scanHistory,oldUnlinked=account().unlinkedScans;if(field){field.scanHistory=[savedScan,...(Array.isArray(field.scanHistory)?field.scanHistory:[])].slice(0,5);state.scanSavedFieldId=field.id;const i=fields.indexOf(field),name=fieldLabel(field,i);$('scanSavedTitle').textContent=t('savedToField',{field:name});$('scanSavedText').textContent=t('savedToFieldText');$('viewUpdatedField').hidden=false;}else{account().unlinkedScans=[savedScan,...(Array.isArray(account().unlinkedScans)?account().unlinkedScans:[])].slice(0,5);state.scanSavedFieldId=null;$('scanSavedTitle').textContent=t('savedUnlinked');$('scanSavedText').textContent=t('savedUnlinkedText');$('viewUpdatedField').hidden=true;}if(!persist()){if(field)field.scanHistory=oldScans;else account().unlinkedScans=oldUnlinked;setError('globalScanError','storageUnavailable');return;}if(field&&savedScan.result!=='Healthy')saveDiseaseReportToCloud(field,savedScan).catch(error=>console.warn('Supabase disease report save failed:',error));state.pendingScan=null;renderFields();$('scanLinkPanel').hidden=true;$('scanSavedPanel').hidden=false;setScanStep(4);toast(field?t('fieldUpdated'):t('scanSaved'));});
+$('saveGlobalScan').addEventListener('click',()=>{if(!state.pendingScan)return;const savedScan=state.pendingScan,value=$('scanFieldSelect').value,fields=account().fields;let field=fields.find(f=>f.id===value);const oldScans=field?.scanHistory,oldUnlinked=account().unlinkedScans;if(field){field.scanHistory=[savedScan,...(Array.isArray(field.scanHistory)?field.scanHistory:[])].slice(0,5);state.scanSavedFieldId=field.id;const i=fields.indexOf(field),name=fieldLabel(field,i);$('scanSavedTitle').textContent=t('savedToField',{field:name});$('scanSavedText').textContent=t('savedToFieldText');$('viewUpdatedField').hidden=false;}else{account().unlinkedScans=[savedScan,...(Array.isArray(account().unlinkedScans)?account().unlinkedScans:[])].slice(0,5);state.scanSavedFieldId=null;$('scanSavedTitle').textContent=t('savedUnlinked');$('scanSavedText').textContent=t('savedUnlinkedText');$('viewUpdatedField').hidden=true;}if(!persist()){if(field)field.scanHistory=oldScans;else account().unlinkedScans=oldUnlinked;setError('globalScanError','storageUnavailable');return;}if(field&&savedScan.result!=='Healthy')saveDiseaseReportToCloud(field,savedScan).then(()=>{outbreakCache.at=0;outbreakCache.reports=null;if(state.page==='alerts')loadNearbyOutbreaks();}).catch(error=>console.warn('Supabase disease report save failed:',error));state.pendingScan=null;renderFields();$('scanLinkPanel').hidden=true;$('scanSavedPanel').hidden=false;setScanStep(4);toast(field?t('fieldUpdated'):t('scanSaved'));});
 $('viewUpdatedField').addEventListener('click',()=>{if(state.scanSavedFieldId)openFieldDashboard(state.scanSavedFieldId);});
 $('scanAnother').addEventListener('click',()=>{state.scanTargetFieldId=null;resetGlobalScanner();renderScanner();});
 $('forecastAlertList').addEventListener('click',e=>{const b=e.target.closest('[data-alert-field]');if(b)openFieldDashboard(b.dataset.alertField);});
