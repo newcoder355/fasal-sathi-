@@ -42,6 +42,19 @@ const {fixture,NOW}=require('./fixture.cjs');
  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8uoAAAAASUVORK5CYII=','base64');
  await page.locator('#globalScanInput').setInputFiles({name:'leaf.png',mimeType:'image/png',buffer:png});await page.waitForFunction(()=>!document.getElementById('runGlobalScan').disabled);await page.locator('#runGlobalScan').click();await page.locator('#globalScanResult').waitFor({state:'visible'});
  check('scan displays real response confidence',(await page.locator('#scanResultConfidence').innerText())==='92%');check('demo selector removed',await page.locator('#demoDiseaseSelect').count()===0);
+ await page.evaluate(()=>{window.originalAssessment=state.pendingScan.assessment;state.pendingScan.assessment={...state.pendingScan.assessment,crops:[{name:'Tobacco',probability:.006}],diseases:[{...state.pendingScan.assessment.diseases[0],name:'Target Spot',probability:.804}]};renderCropAssessment(state.pendingScan.assessment);});
+ check('low-confidence Tobacco falls back to registered Tomato',await page.locator('#scanResultCrop').innerText()==='Tomato'&&await page.locator('#scanCropFallbackNote').isVisible());
+ check('disease confidence stays independent',await page.locator('#scanResultTitle').innerText()==='Target Spot'&&await page.locator('#scanResultConfidence').innerText()==='80.4%');
+ const selectedField=await page.locator('#scanFieldSelect').inputValue();await page.locator('#scanFieldSelect').selectOption('unlinked');
+ check('low-confidence crop without field is Uncertain',await page.locator('#scanResultCrop').innerText()==='Uncertain'&&await page.locator('#scanCropFallbackNote').isHidden());
+ await page.locator('#scanFieldSelect').selectOption(selectedField);
+ for(const lang of ['hi','mr','en']){await page.locator('#languageSwitch').selectOption(lang);check('fallback survives language switch '+lang,await page.locator('#scanResultCrop').innerText()===await page.evaluate(()=>t('cropName'))&&await page.locator('#scanResultConfidence').innerText()==='80.4%');}
+ check('threshold, unknown probabilities and other field crops',await page.evaluate(()=>{
+  const show=(p,field={crop:'tomato'})=>scanCropDisplay({crops:[{name:'Tobacco',probability:p}]},field);
+  return show(.499).label==='Tomato'&&show(.5).label==='Tobacco · 50%'&&!show(.5).fallback&&show(null).label==='Tomato'&&show(undefined,null).label==='Uncertain'&&show(.006,{crop:'wheat'}).label==='Wheat';
+ }));
+ check('saved history hides low-confidence crop name',await page.evaluate(()=>!scanHistoryMarkup([{...state.pendingScan,assessment:state.pendingScan.assessment}],account().fields[0]).includes('Tobacco')));
+ await page.evaluate(()=>{state.pendingScan.assessment=window.originalAssessment;renderCropAssessment(state.pendingScan.assessment);});
  check('field scanner preselects field',await page.locator('#scanFieldSelect').inputValue()!=='unlinked');
  await page.locator('#saveGlobalScan').click();await page.locator('#viewUpdatedField').click();check('real result is saved in history',(await page.locator('#scanHistory').textContent()).includes('early blight'));check('photo does not alter forecast',await page.locator('#tomcastTotal').innerText()==='Very high');
  await page.reload();check('reload starts at language page',await page.locator('#screen-language').evaluate(el=>el.classList.contains('active')));await page.locator('[data-lang="en"]').click();await page.locator('#bottomNav [data-route="fields"]').click();check('field survives reload',(await page.locator('#fieldList').innerText()).includes('Vidisha tomatoes'));await page.locator('[data-open-field]').first().click();check('real result survives reload',(await page.locator('#scanHistory').textContent()).includes('early blight'));
