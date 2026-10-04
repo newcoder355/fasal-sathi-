@@ -31,7 +31,7 @@ Forecasts expire after six hours or at the field's next local midnight. Old-form
 
 Crop photos are compressed and stored locally as **unassessed** records. No diagnosis or confidence is invented. Earlier demo scan history is explicitly labelled as a demo and excluded from weather scores. Nearby sample outbreak cards have been removed.
 
-The app opens a device workspace without fake SMS verification. Existing number-keyed profiles can still be reopened with the optional previous-profile field. Browser storage is not secure authentication, a server backup, or cross-device synchronisation. Storage failures are surfaced. Image diagnosis, cloud accounts, real-time sensor ingestion and community outbreak monitoring are not connected.
+The app starts with language selection, which opens the homepage directly. A local workspace is selected automatically, preserving the active or first existing profile. The login and OTP screens have been removed. Browser storage is not secure authentication, a server backup, or cross-device synchronisation. Storage failures are surfaced. Image diagnosis, cloud accounts, real-time sensor ingestion and community outbreak monitoring are not connected.
 
 ## Validation and sources
 

@@ -23,3 +23,7 @@ Implemented: location-specific Open-Meteo inputs; TOMCAST daily weather favourab
 ## Scope still not implemented
 
 Photo-based disease classification, direct hourly sensor ingestion, cloud accounts/synchronisation, community outbreak reporting and validated pesticide scheduling are not connected. TOMCAST estimates weather favourability; it does not diagnose infection. The humidity proxy and temperature-table convention are documented in `MODEL.md`.
+
+## Latest update: direct entry (4 October 2026)
+
+At the user's request, the language page now opens first on every launch/reload; selecting a language goes straight to Home. Login/OTP markup, handlers, timers and the sign-out/account section were removed. Existing browser records and storage keys are preserved; an existing active or first local profile is selected automatically. Forecasting, fields, photos and alerts are otherwise unchanged. All 43 browser regression checks passed after this edit. Deployment verification is performed after pushing this checkpoint.

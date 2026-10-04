@@ -732,7 +732,7 @@
             <div class="arrow">→</div>
           </button>
         </div>
-      </section><section class="screen" id="screen-login" aria-labelledby="loginTitle"><div class="icon-box auth-symbol"><svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg></div><div class="section-head"><div class="eyebrow" data-i18n="loginEyebrow">MOBILE SIGN-IN</div><h1 id="loginTitle" data-i18n="loginTitle">Sign in or register</h1><p data-i18n="loginSubtitle">Use your mobile number to get started. Your account is created on your first visit.</p></div><form id="loginForm" class="auth-card" novalidate><details><summary data-i18n="loginOptional">Open an older profile</summary><label for="mobileNumber" data-i18n="mobileNumber">Mobile number</label><div class="phone-input"><span aria-label="India calling code">+91</span><input id="mobileNumber" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="18" placeholder="98765 43210" aria-describedby="phoneError demoAuthNote" /></div><p id="phoneError" class="error-text" role="alert"></p></details><button type="submit" class="btn btn-primary full" data-i18n="sendOtp">Get demo OTP</button><div class="notice" id="demoAuthNote" data-i18n="demoAuthNote">Demo sign-in: no SMS is sent. Use any valid-format Indian mobile number to try the flow.</div><p class="demo-note" data-i18n="dataNotice">Demo account and field details stay in this browser. Please use a sample number.</p></form><button class="text-button" data-back="language" data-i18n="changeLanguage">Change language</button></section><section class="screen" id="screen-otp" aria-labelledby="otpTitle"><div class="icon-box auth-symbol"><svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg></div><div class="section-head"><div class="eyebrow" data-i18n="verifyEyebrow">MOBILE VERIFICATION</div><h1 id="otpTitle" data-i18n="otpTitle">Enter the OTP</h1><p><span data-i18n="otpSubtitle">Demo verification for</span> <strong id="otpPhone"></strong></p><button type="button" class="text-button" id="changeNumber" data-i18n="changeNumber">Change number</button></div><form id="otpForm" novalidate><label for="otpCode" data-i18n="otpLabel">6-digit verification code</label><input id="otpCode" class="code-input" inputmode="numeric" autocomplete="one-time-code" type="text" maxlength="6" placeholder="------" aria-describedby="otpError" required /><p class="error-text" id="otpError" role="alert"></p><button type="submit" class="btn btn-primary full" id="verifyOtpBtn" data-i18n="verifyOtp">Verify and continue</button></form><div class="demo-code"><div><small data-i18n="demoCodeLabel">Demo code · no SMS is sent</small><strong>123456</strong></div><button type="button" class="text-button" id="fillDemoCode" data-i18n="fillCode">Use this code</button></div><p class="demo-note" data-i18n="otpExpiryNote">This demo code expires after 5 minutes. This is a preview, not secure phone authentication.</p><button type="button" class="text-button" id="resendOtp" disabled></button></section><section class="screen" id="screen-home">
+      </section><section class="screen" id="screen-home">
         <div class="welcome-row">
           <div><div class="eyebrow" data-i18n="homeEyebrow">YOUR FARM COMPANION</div><h1 data-i18n="homeTitle">Hello, farmer!</h1><p data-i18n="homeSubtitle">Keep an eye on your crops and your area.</p></div>
           <div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-leaf"></use></svg></div>
@@ -740,7 +740,7 @@
         <div class="quick-scan-card"><div><h2 data-i18n="quickScanTitle">See a crop problem?</h2><p data-i18n="quickScanText">Scan first. Choose the field after the result.</p></div><button type="button" class="btn" id="homeQuickScan" data-i18n="scanNow">Scan now</button></div>
         <div class="demo-banner"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg><div><strong data-i18n="demoAlertsTitle">Sample alerts, not live reports</strong><p data-i18n="demoAlertsText">These examples show how nearby updates will look. Local monitoring is not connected yet.</p></div></div>
         <div class="location-strip"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><div><strong id="homeLocationTitle"></strong><p class="small" id="homeLocationHint"></p></div><button class="text-button" data-route="fields" data-i18n="viewFields">View fields</button></div>
-      </section><section class="screen" id="screen-fields"><div class="section-head"><div class="eyebrow" data-i18n="fieldsEyebrow">CROP & LOCATION</div><h1 data-i18n="fieldsTitle">My fields</h1><p data-i18n="fieldsSubtitle">Keep your fields together, with a crop and location for each.</p></div><div id="fieldList"></div><div id="fieldsEmpty" class="empty-state"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-fields"></use></svg></div><h2 data-i18n="noFields">Add your first field</h2><p data-i18n="noFieldsText">Choose the field location first, then add crop details.</p><button type="button" class="btn btn-primary" data-add-field data-i18n="addField">+ Add field</button></div><button type="button" class="btn btn-primary full" id="addAnotherField" data-add-field data-i18n="addField" hidden>+ Add field</button><p class="demo-note" data-i18n="localOnly">Saved on this device only. Cloud sync is not available yet.</p></section><section class="screen" id="screen-support"><div class="section-head"><div class="eyebrow" data-i18n="supportEyebrow">A HELPING HAND</div><h1 data-i18n="supportTitle">Support</h1><p data-i18n="supportSubtitle">Guidance from your local agricultural extension team.</p></div><div class="support-card"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></div><span class="sample-pill" data-i18n="comingSoon">Coming soon</span><h2 data-i18n="extensionTitle">Extension staff support</h2><p data-i18n="extensionText">This is where you will be able to reach your local extension staff for help with crop concerns.</p><button type="button" class="btn btn-secondary full" disabled data-i18n="contactSupport">Contact support</button><p class="demo-note" data-i18n="supportNotConnected">Calling and messaging are not connected in this prototype.</p></div><div class="account-card"><h2 data-i18n="demoAccount">Your demo account</h2><div class="summary-row"><span data-i18n="farmerId">Farmer ID</span><strong id="accountId"></strong></div><div class="summary-row"><span data-i18n="mobileNumber">Mobile number</span><strong id="accountPhone"></strong></div><button type="button" class="text-button" id="signOut" data-i18n="signOut">Sign out</button><p class="small" data-i18n="accountNote">Signing out keeps the fields saved in this browser for your next demo login.</p></div></section><section class="screen" id="screen-crop">
+      </section><section class="screen" id="screen-fields"><div class="section-head"><div class="eyebrow" data-i18n="fieldsEyebrow">CROP & LOCATION</div><h1 data-i18n="fieldsTitle">My fields</h1><p data-i18n="fieldsSubtitle">Keep your fields together, with a crop and location for each.</p></div><div id="fieldList"></div><div id="fieldsEmpty" class="empty-state"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-fields"></use></svg></div><h2 data-i18n="noFields">Add your first field</h2><p data-i18n="noFieldsText">Choose the field location first, then add crop details.</p><button type="button" class="btn btn-primary" data-add-field data-i18n="addField">+ Add field</button></div><button type="button" class="btn btn-primary full" id="addAnotherField" data-add-field data-i18n="addField" hidden>+ Add field</button><p class="demo-note" data-i18n="localOnly">Saved on this device only. Cloud sync is not available yet.</p></section><section class="screen" id="screen-support"><div class="section-head"><div class="eyebrow" data-i18n="supportEyebrow">A HELPING HAND</div><h1 data-i18n="supportTitle">Support</h1><p data-i18n="supportSubtitle">Guidance from your local agricultural extension team.</p></div><div class="support-card"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></div><span class="sample-pill" data-i18n="comingSoon">Coming soon</span><h2 data-i18n="extensionTitle">Extension staff support</h2><p data-i18n="extensionText">This is where you will be able to reach your local extension staff for help with crop concerns.</p><button type="button" class="btn btn-secondary full" disabled data-i18n="contactSupport">Contact support</button><p class="demo-note" data-i18n="supportNotConnected">Calling and messaging are not connected in this prototype.</p></div></section><section class="screen" id="screen-crop">
         <div class="section-head"><div class="eyebrow" data-i18n="fieldStepDetails">ADD FIELD · 2 OF 2</div><h1 data-i18n="fieldDetailsTitle">Crop and field details</h1><p data-i18n="fieldDetailsSubtitle">Crop is required. Add the other details only if they are already known or available.</p></div>
         <div class="selected-location-card"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><div><strong data-i18n="selectedLocation">Selected field location</strong><p id="detailsCoordinates" class="small">—</p></div><button type="button" class="text-button" id="changeFieldLocation" data-i18n="editLocation">Edit location</button></div>
         <form id="fieldDetailsForm" novalidate>
@@ -953,17 +953,15 @@ Object.assign(translations.en,{demoAccount:'Device workspace',supportNotConnecte
 Object.assign(translations.hi,{demoAccount:'डिवाइस कार्यक्षेत्र',supportNotConnected:'स्थानीय कृषि विस्तार कार्यालय से संपर्क करें। यहाँ कॉल और संदेश सेवा जुड़ी नहीं है।'});
 Object.assign(translations.mr,{demoAccount:'डिवाइस कार्यक्षेत्र',supportNotConnected:'स्थानिक कृषी विस्तार कार्यालयाशी संपर्क साधा. येथे कॉल आणि संदेश सेवा जोडलेली नाही.'});
 // Device-only workspace; no SMS service, live alert feed, or support backend is connected.
-// Replace the DemoAuth adapter with a verified provider before handling real accounts.
+// Keep the previous storage keys so saved fields survive removal of the login flow.
 const STORAGE_KEY = 'fasalsathi.demo.v2';
 const SESSION_KEY = 'fasalsathi.demo.session';
-const DEMO_CODE = '123456';
 const $ = id => document.getElementById(id);
 const state = {lang:'en',page:'language',user:null,crop:'',lat:null,lon:null,editingId:null,activeFieldId:null,weather:null,weatherStatus:'idle',cameraFileName:'',scanFileName:'',scanPreviewData:'',scanTargetFieldId:null,scanSavedFieldId:null,pendingScan:null};
-let db = {accounts:{},lang:'en'}, storageAvailable = true, pendingOtp = null, otpTimer = null, toastTimer = null;
+let db = {accounts:{},lang:'en'}, storageAvailable = true, toastTimer = null;
 let map = null, fieldMarker = null, leafletLoading = null, locationRequest = 0, weatherRequest = 0, fieldForecastRequest = 0;
 const t = (key,vars={}) => { let s=translations[state.lang][key] || translations.en[key] || key; for(const [k,v] of Object.entries(vars)) s=s.replaceAll('{'+k+'}',String(v)); return s; };
 const escapeHtml = value => String(value).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const maskPhone = phone => '+91 •••••• '+phone.slice(-4);
 const newId = prefix => prefix+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
 const account = () => state.user ? db.accounts[state.user] : null;
 const fieldLabel = (field,index) => field.name || t('fieldDefault',{number:index+1});
@@ -991,58 +989,37 @@ function applyLanguage(){
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>el.placeholder=t(el.dataset.i18nPlaceholder));
   document.querySelectorAll('[data-i18n-aria]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAria)));
   $('locationStatus').textContent=state.lat===null?t('mapHint'):t('pinPlaced');
-  ['phoneError','otpError','coordinateError','fieldDetailsError'].forEach(id=>{const key=$(id).dataset.errorKey;if(key) $(id).textContent=t(key);});
-  updateOtpTimer(); renderHome(); renderFields(); renderSupport(); renderWeatherCard(); syncDeviceVisibility(); if(state.page==='done') fillSummary(); if(state.page==='field') renderFieldDashboard(); if(state.page==='scan') renderScanner(); if(state.page==='alerts') renderAlerts();
+  ['coordinateError','fieldDetailsError'].forEach(id=>{const key=$(id).dataset.errorKey;if(key) $(id).textContent=t(key);});
+  renderHome(); renderFields(); renderWeatherCard(); syncDeviceVisibility(); if(state.page==='done') fillSummary(); if(state.page==='field') renderFieldDashboard(); if(state.page==='scan') renderScanner(); if(state.page==='alerts') renderAlerts();
 }
 function setError(id,key=''){ $(id).dataset.errorKey=key;$(id).textContent=key?t(key):''; }
 function showScreen(name,replace=false){
-  const publicScreens=['language','login','otp'];
-  if(!publicScreens.includes(name) && !account()) name='login';
-  if(name==='otp'&&!pendingOtp) name='login';
-  if(account() && ['login','otp'].includes(name)) name='home';
+  if(!account()&&name!=='language')name='language';
   if(name==='done'&&(state.lat===null||state.lon===null)) name='fields';
   if(name==='field'&&!activeField()) name='fields';
   state.page=name;
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+name));
-  const signed=!!account(); document.body.classList.toggle('signed-in',signed); $('bottomNav').hidden=!signed;
+  const signed=!!account()&&name!=='language'; document.body.classList.toggle('signed-in',signed); $('bottomNav').hidden=!signed;
   $('languageSwitch').hidden=name==='language';
-  const widths={language:33,login:66,otp:100,location:50,crop:100};
+  const widths={location:50,crop:100};
   $('setupProgress').hidden=!(name in widths); $('progressBar').style.width=(widths[name]||100)+'%'; $('progressTrack').setAttribute('aria-valuenow',widths[name]||100);
   document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.route===(['crop','location','done','field'].includes(name)?'fields':name);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
-  if(name==='home')renderHome();if(name==='fields')renderFields();if(name==='support')renderSupport();if(name==='done')fillSummary();if(name==='field')renderFieldDashboard();if(name==='scan')renderScanner();if(name==='alerts')renderAlerts();
+  if(name==='home')renderHome();if(name==='fields')renderFields();if(name==='done')fillSummary();if(name==='field')renderFieldDashboard();if(name==='scan')renderScanner();if(name==='alerts')renderAlerts();
   if(name==='location') {ensureMap().then(()=>{if(map&&state.page==='location')map.invalidateSize();});}
   if(name!=='location') {locationRequest++;$('currentLocationBtn').disabled=false;}
   try { if(location.hash!=='#'+name) history[replace?'replaceState':'pushState']({screen:name},'','#'+name); } catch {}
   window.scrollTo({top:0,behavior:'instant'});
   const title=$('screen-'+name).querySelector('h1,h2');if(title){title.tabIndex=-1;title.focus({preventScroll:true});}
 }
-function normalizePhone(raw){let p=raw.replace(/\D/g,'');if(p.length===12&&p.startsWith('91'))p=p.slice(2);if(p.length===11&&p.startsWith('0'))p=p.slice(1);return p;}
-// DemoAuth is intentionally local and must not be used as production authentication.
-const DemoAuth = {
-  request(phone){pendingOtp={phone,expires:Date.now()+300000,resendAt:Date.now()+30000,attempts:0};},
-  verify(code){if(!pendingOtp||Date.now()>pendingOtp.expires)return 'otpExpired';if(pendingOtp.attempts>=5)return 'otpLocked';if(!/^\d{6}$/.test(code))return 'otpLength';if(code!==DEMO_CODE){pendingOtp.attempts++;return pendingOtp.attempts>=5?'otpLocked':'otpInvalid';}return null;}
-};
-function updateOtpTimer(){
-  const seconds=pendingOtp?Math.max(0,Math.ceil((pendingOtp.resendAt-Date.now())/1000)):0;
-  $('resendOtp').disabled=seconds>0; $('resendOtp').textContent=seconds?t('resendIn',{seconds}):t('resendOtp');
-  if(pendingOtp && Date.now()>pendingOtp.expires && state.page==='otp')setError('otpError','otpExpired');
+function openLocalWorkspace(){
+  // Reuse the active/previous profile; never discard stored field records.
+  if(!account()){
+    state.user=Object.keys(db.accounts)[0]||'9000000000';
+    if(!db.accounts[state.user])db.accounts[state.user]={id:newId('FS-'),fields:[],unlinkedScans:[]};
+  }
+  try{sessionStorage.setItem(SESSION_KEY,state.user);}catch{}
 }
-function requestDemoOtp(phone){
-  DemoAuth.request(phone);$('otpPhone').textContent=maskPhone(phone);$('otpCode').value='';setError('otpError');updateOtpTimer();clearInterval(otpTimer);otpTimer=setInterval(updateOtpTimer,1000);showScreen('otp');
-}
-$('loginForm').addEventListener('submit',e=>{e.preventDefault();const raw=$('mobileNumber').value.trim(),phone=raw?normalizePhone(raw):(Object.keys(db.accounts).length===1?Object.keys(db.accounts)[0]:'9000000000');if(!/^[6-9]\d{9}$/.test(phone)){setError('phoneError','phoneInvalid');return;}if(!db.accounts[phone])db.accounts[phone]={id:newId('FS-'),fields:[],unlinkedScans:[]};state.user=phone;persist();try{sessionStorage.setItem(SESSION_KEY,phone);}catch{}showScreen('home',true);});
-$('mobileNumber').addEventListener('input',()=>{setError('phoneError');$('mobileNumber').removeAttribute('aria-invalid');});
-$('otpCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6);setError('otpError');});
-$('otpForm').addEventListener('submit',e=>{
-  e.preventDefault();const error=DemoAuth.verify($('otpCode').value.trim());if(error){setError('otpError',error);return;}
-  const phone=pendingOtp.phone;const first=!db.accounts[phone];if(first)db.accounts[phone]={id:newId('FS-'),fields:[],unlinkedScans:[]};state.user=phone;db.lang=state.lang;persist();
-  try{sessionStorage.setItem(SESSION_KEY,phone);}catch{storageAvailable=false;}
-  pendingOtp=null;clearInterval(otpTimer);$('otpCode').value='';showScreen('home',true);toast(t(first?'registrationDone':'welcomeBack'));
-});
-$('fillDemoCode').addEventListener('click',()=>{$('otpCode').value=DEMO_CODE;setError('otpError');$('verifyOtpBtn').focus();});
-$('resendOtp').addEventListener('click',()=>{if(pendingOtp&&Date.now()>=pendingOtp.resendAt)requestDemoOtp(pendingOtp.phone);});
-$('changeNumber').addEventListener('click',()=>{pendingOtp=null;clearInterval(otpTimer);showScreen('login');});
-document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{state.lang=b.dataset.lang;db.lang=state.lang;persist();applyLanguage();showScreen(account()?'home':'login');}));
+document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{state.lang=b.dataset.lang;db.lang=state.lang;openLocalWorkspace();persist();applyLanguage();showScreen('home');}));
 $('languageSwitch').addEventListener('change',e=>{state.lang=e.target.value;db.lang=state.lang;persist();applyLanguage();});
 document.querySelectorAll('[data-back],[data-route]').forEach(b=>b.addEventListener('click',()=>{const route=b.dataset.back||b.dataset.route;if(route==='scan')openScanner();else showScreen(route);}));
 function renderHome(){
@@ -1057,7 +1034,6 @@ function renderFields(){
  const fields=account()?.fields||[];$('fieldsEmpty').hidden=fields.length>0;$('addAnotherField').hidden=!fields.length;
  $('fieldList').innerHTML=fields.map((f,i)=>{const forecast=calculateTomcast(f),last=f.scanHistory?.[0],risk=t(riskKey('risk',forecast.risk));return '<article class="field-card"><h3>'+escapeHtml(fieldLabel(f,i))+'</h3><p>'+escapeHtml(t('cropName')+' · '+stageName(f.plantStage))+'</p><div class="field-meta-row"><span class="status-pill">'+escapeHtml(forecast.stale?t('staleWeather'):risk)+'</span><span>'+escapeHtml(t('dsvFiveDay'))+': '+(forecast.total??'—')+'</span></div><div class="field-scan-summary">'+escapeHtml(last?t(last.prototype?'legacyPhoto':'photoRecorded')+' · '+scanDate(last.at):t('noScanYet'))+'</div><div class="field-card-actions"><button type="button" class="btn btn-primary" data-open-field="'+escapeHtml(f.id)+'">'+escapeHtml(t('openField'))+'</button><button type="button" class="btn btn-secondary" data-scan-field="'+escapeHtml(f.id)+'">📷 '+escapeHtml(t('navScan'))+'</button></div></article>';}).join('');
 }
-function renderSupport(){const a=account();$('accountId').textContent=a?.id||'—';$('accountPhone').textContent=state.user&&state.user!=='9000000000'?maskPhone(state.user):'—';}
 function resetDetailsForm(){
   $('fieldDetailsForm').reset();$('cropContinue').disabled=true;$('fieldName').value='';$('cameraFileName').textContent='';$('cameraPreview').hidden=true;$('cameraPreview').removeAttribute('src');state.cameraFileName='';setError('fieldDetailsError');syncDeviceVisibility();
 }
@@ -1198,11 +1174,10 @@ $('viewUpdatedField').addEventListener('click',()=>{if(state.scanSavedFieldId)op
 $('scanAnother').addEventListener('click',()=>{state.scanTargetFieldId=null;resetGlobalScanner();renderScanner();});
 $('forecastAlertList').addEventListener('click',e=>{const b=e.target.closest('[data-alert-field]');if(b)openFieldDashboard(b.dataset.alertField);});
 
-$('signOut').addEventListener('click',()=>{state.user=null;state.editingId=null;state.activeFieldId=null;state.scanTargetFieldId=null;state.pendingScan=null;clearPin();pendingOtp=null;clearInterval(otpTimer);$('mobileNumber').value='';$('otpCode').value='';$('toast').hidden=true;try{sessionStorage.removeItem(SESSION_KEY);}catch{}showScreen('language',true);});
 window.addEventListener('popstate',()=>{let route=location.hash.slice(1);if(!$('screen-'+route))route=account()?'home':'language';showScreen(route,true);});
 function refreshVisibleForecast(){if(state.page==='field'&&activeField()){renderFieldDashboard();if(!Tomcast.fresh(activeField().weather)&&!$('refreshFieldForecast').disabled)refreshActiveFieldForecast();}else if(state.page==='fields')renderFields();else if(state.page==='alerts')renderAlerts();}
 window.addEventListener('online',refreshVisibleForecast);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshVisibleForecast();});setInterval(()=>{if(!document.hidden)refreshVisibleForecast();},60000);
-loadSaved();applyLanguage();showScreen(account()?'home':'language',true);
+loadSaved();applyLanguage();showScreen('language',true);
 if(!storageAvailable)setTimeout(()=>toast(t('storageUnavailable')),100);
 
 </script>

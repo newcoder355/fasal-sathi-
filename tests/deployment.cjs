@@ -35,7 +35,6 @@ const { chromium } = require(require.resolve('playwright', {
       assert.equal(deployed, fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), file + ' differs from tested source');
     }
     await page.locator('[data-lang="en"]').click();
-    await page.locator('#loginForm button[type=submit]').click();
     const result = await page.evaluate(async () => {
       const weather = await Tomcast.fetchSnapshot(23.525, 77.808);
       const field = { id: 'deployment-check', name: 'Vidisha verification', crop: 'tomato', lat: 23.525, lon: 77.808, scanHistory: [] };
