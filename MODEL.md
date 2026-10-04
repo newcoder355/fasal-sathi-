@@ -54,3 +54,9 @@ The UI shows Low (daily DSV 0–1), Moderate (2), High (3), or Very high (4), ra
 ### Verification on 1 October 2026
 
 18 model tests passed, including all 425 integer temperature/wet-hour table cases. 41 Chromium browser checks passed, including live Open-Meteo retrieval for Vidisha, five dated future forecasts, changing weather, incomplete responses, failed requests, stale-data refresh, field creation/edit/reload, migration of old fields and demo scans, photo save/retry, storage failure rollback, English/Hindi/Marathi, and layouts at 320/390/768/1280 px. A live cross-origin request returned five valid forecast days. This establishes tested software behaviour, not field diagnostic accuracy.
+
+### Tomato-only photo validation
+
+`CropScan.TOMATO_VALIDATION` in `crop-scan.js` contains configurable UI thresholds: non-tomato rejection at 0.60, positive tomato identification at 0.50, and a usable top issue/healthy match at 0.50. These are product rules, not validated diagnostic accuracy guarantees. They never rescale disease probabilities.
+
+A confident non-tomato result overrides the registered field and blocks result display, local save and the app's cloud report submission. An uncertain crop can use a registered Tomato field only when there is a usable issue result. Without a registered Tomato field, a positive tomato identification is required. Missing/weak issue results and non-plant responses show the clearer-photo retry message. Crop uncertainty cannot itself prove that the image is a tomato or measure image blur; the field fallback is an assumption shown to the user. Existing weather logic and the Edge Function contract are unchanged.

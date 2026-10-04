@@ -37,5 +37,18 @@
   }catch(error){if(timedOut)throw new Error('scanTimeout');if(controller.signal.aborted)throw new Error('scanCancelled');if(error instanceof TypeError)throw new Error('scanNetworkError');throw error;}
   finally{clearTimeout(timer);signal?.removeEventListener('abort',cancel);}
  }
- return {parse,identify};
+ // Product thresholds, not calibrated accuracy guarantees. Values are probabilities (0–1).
+ const TOMATO_VALIDATION={nonTomatoConfidence:0.60,tomatoConfidence:0.50,minIssueConfidence:0.50};
+ const isTomato=value=>/^(tomato|tomatoes|solanum lycopersicum|lycopersicon esculentum)$/i.test(String(value||'').trim());
+ function validateTomato(assessment,registeredCrop,options={}){
+  const thresholds={...TOMATO_VALIDATION,...options},crop=assessment?.crops?.[0],issue=assessment?.diseases?.[0];
+  const p=probability(crop?.probability),tomato=isTomato(crop?.name)||isTomato(crop?.scientificName);
+  if(registeredCrop&&!isTomato(registeredCrop))return {accepted:false,reason:'unsupported'};
+  if(crop&&!tomato&&p!==null&&p>=thresholds.nonTomatoConfidence)return {accepted:false,reason:'unsupported'};
+  if(!issue?.name||probability(issue.probability)===null||issue.probability<thresholds.minIssueConfidence)return {accepted:false,reason:'uncertain'};
+  if(tomato&&p!==null&&p>=thresholds.tomatoConfidence)return {accepted:true,fallback:false};
+  if(isTomato(registeredCrop))return {accepted:true,fallback:true};
+  return {accepted:false,reason:'uncertain'};
+ }
+ return {parse,identify,validateTomato,TOMATO_VALIDATION};
 });

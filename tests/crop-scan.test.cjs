@@ -7,3 +7,19 @@ test('rejects service errors, empty results, and non-plant photos',()=>{assert.t
 test('POST contains stripped base64 and public apikey, never a provider key or false JWT',async()=>{await scan.identify('data:image/jpeg;base64,YWJj',{url:'https://example.test',key:'sb_publishable_test',fetcher:async(url,options)=>{assert.equal(options.method,'POST');assert.deepEqual(JSON.parse(options.body),{image:'YWJj'});assert.deepEqual(options.headers,{'Content-Type':'application/json',apikey:'sb_publishable_test'});return {ok:true,json:async()=>response};}});});
 test('HTTP and malformed JSON fail cleanly',async()=>{for(const status of [401,403,429,500])await assert.rejects(scan.identify('YWJj',{fetcher:async()=>({ok:false,status})}),/scan(Auth|Limit|Service)Error/);await assert.rejects(scan.identify('YWJj',{fetcher:async()=>({ok:true,json:async()=>{throw Error();}})}),/scanInvalidResponse/);});
 test('timeout and cancellation abort the request',async()=>{const fetcher=(_,o)=>new Promise((resolve,reject)=>{const fail=()=>reject(new Error('abort'));if(o.signal.aborted)fail();else o.signal.addEventListener('abort',fail);});await assert.rejects(scan.identify('YWJj',{timeoutMs:5,fetcher}),/scanTimeout/);const c=new AbortController();const pending=scan.identify('YWJj',{signal:c.signal,fetcher});c.abort();await assert.rejects(pending,/scanCancelled/);});
+test('tomato-only cases A–D and threshold boundaries',()=>{
+ const fixture=(name,p,issue=.804)=>({crops:[{name,probability:p}],diseases:[{name:'Target Spot',probability:issue}]});
+ assert.equal(scan.validateTomato(fixture('Tomato',.9),'tomato').accepted,true);
+ const b=fixture('Tobacco',.006);assert.deepEqual(scan.validateTomato(b,'tomato'),{accepted:true,fallback:true});assert.equal(b.diseases[0].probability,.804);
+ assert.equal(scan.validateTomato(fixture('Potato',.85),'tomato').reason,'unsupported');
+ assert.equal(scan.validateTomato(fixture('Tobacco',.006,.1),'tomato').reason,'uncertain');
+ assert.equal(scan.validateTomato(fixture('Potato',.6),'tomato').accepted,false);
+ assert.equal(scan.validateTomato(fixture('Potato',.599),'tomato').accepted,true);
+ assert.equal(scan.validateTomato(fixture('Tomato',.5)).accepted,true);
+ assert.equal(scan.validateTomato(fixture('Tobacco',.006)).accepted,false);
+ assert.equal(scan.validateTomato(fixture('Tomato',.9),'potato').accepted,false);
+ assert.equal(scan.validateTomato(fixture('Tomato',.9,null),'tomato').accepted,false);
+ assert.equal(scan.validateTomato({crops:[],diseases:[]},'tomato').accepted,false);
+ assert.equal(scan.validateTomato(fixture('Potato',.65),'tomato',{nonTomatoConfidence:.7}).accepted,true);
+ assert.equal(scan.validateTomato(fixture('Solanum lycopersicum',.9)).accepted,true);
+});

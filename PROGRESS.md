@@ -65,3 +65,9 @@ Changed decorative surfaces to white/grey and text/icons to neutral dark tones. 
 - Crop suggestions below 50%, missing probabilities and absent crop suggestions now use the selected field's registered crop, or Uncertain when none is available. A small translated note explains when a registered crop is used. Suggestions at exactly 50% or above retain their existing display.
 - Field selection changes immediately update the displayed crop and survive language changes. Saved field history follows the same display rule. The original API assessment, disease result/probability, optional details, weather calculations and Edge Function request are unchanged.
 - Verification: 78 browser checks passed. Explicitly tested Tobacco 0.6% → registered Tomato with Target Spot 80.4% unchanged; unlinked → Uncertain; 49.9%/50% boundary; missing probabilities; other registered crops; English/Hindi/Marathi; and saved-history display. Preserved newer GitHub outbreak changes before editing.
+
+## Tomato-only scan validation checkpoint
+
+- Added configurable frontend validation before rendering, local save and cloud report submission. Reject non-tomato predictions at >=60%; accept positive tomato predictions at >=50%, or fall back to a registered Tomato field for uncertain crops. Require a usable top disease/healthy suggestion at >=50%; preserve its exact API confidence.
+- Rejected scans clear disease details and offer translated wrong-crop or unreliable-image guidance plus Scan another photo. Retry opens the picker and retains field context. Supabase request and weather calculations remain unchanged.
+- Tests cover requested cases A–D, threshold boundaries, missing results, field/language changes, no saved record on rejection, request-level gating and successful retry. 26 unit/model tests and 82 browser checks passed. Live scan test supports SCAN_EXPECT_REJECTION=1 for a non-tomato test image.

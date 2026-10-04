@@ -10,8 +10,9 @@ const {chromium}=require(require.resolve('playwright',{paths:[process.env.CODEX_
   await page.goto(process.env.DEPLOYMENT_URL||'https://newcoder355.github.io/fasal-sathi-/',{timeout:45000});
   for(const file of ['index.html','crop-scan.js']){const actual=await page.evaluate(async f=>(await fetch(f,{cache:'no-store'})).text(),file);assert.equal(actual,fs.readFileSync(path.join(__dirname,'..',file),'utf8'),'Deployment mismatch: '+file);}
   await page.locator('[data-lang="en"]').click();await page.locator('#homeQuickScan').click();await page.locator('#globalScanInput').setInputFiles(process.env.SCAN_TEST_IMAGE);await page.waitForFunction(()=>!document.getElementById('runGlobalScan').disabled);
-  await page.locator('#runGlobalScan').click();await page.waitForFunction(()=>!!state.pendingScan||!!document.getElementById('globalScanError').textContent,{},{timeout:75000});
+  await page.locator('#runGlobalScan').click();await page.waitForFunction(()=>!!state.pendingScan||!document.getElementById('scanValidationMessage').hidden||!!document.getElementById('globalScanError').textContent,{},{timeout:75000});
   assert.equal(await page.locator('#globalScanError').innerText(),'');
+  if(process.env.SCAN_EXPECT_REJECTION==='1'){assert.ok(await page.locator('#scanValidationMessage').isVisible());assert.ok(await page.locator('#globalScanResult').isHidden());assert.equal(await page.evaluate(()=>state.pendingScan),null);console.log('PASS: live non-tomato/uncertain scan rejected without displaying or saving a diagnosis.');return;}
   const result=await page.evaluate(()=>({crop:state.pendingScan.assessment.crops[0]?.name,disease:state.pendingScan.result,confidence:state.pendingScan.confidence,provider:state.pendingScan.provider}));
   assert.equal(result.provider,'crop.health');assert.ok(result.crop&&result.disease&&result.confidence>=0&&result.confidence<=100);
   for(const width of [320,390,768]){await page.setViewportSize({width,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}

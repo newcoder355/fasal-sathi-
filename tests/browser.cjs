@@ -15,7 +15,7 @@ const {fixture,NOW}=require('./fixture.cjs');
  let scanMode='success',scanRequests=0,cloudWrites=0;
  const scanFixture={success:true,crop:[{name:'tomato',probability:.91}],diseases:[{name:'early blight',probability:.92,details:{symptoms:{Leaves:'Brown spots'},severity:'Can damage foliage',treatment:{prevention:['Avoid wet foliage']}}},{name:'Septoria leaf spot',probability:.06}]};
  await context.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({from:()=>({insert:async()=>({error:null}),select:async()=>({data:[],error:null})})})};'}));
- await page.route('**/functions/v1/rapid-endpoint',async route=>{scanRequests++;const body=route.request().postDataJSON();assert.ok(body.image&&!body.image.startsWith('data:'));assert.ok(route.request().headers().apikey.startsWith('sb_publishable_'));if(scanMode==='fail')return route.fulfill({status:503,body:'unavailable'});if(scanMode==='delay')await new Promise(r=>setTimeout(r,300));return route.fulfill({json:scanFixture});});
+ await page.route('**/functions/v1/rapid-endpoint',async route=>{scanRequests++;const body=route.request().postDataJSON();assert.ok(body.image&&!body.image.startsWith('data:'));assert.ok(route.request().headers().apikey.startsWith('sb_publishable_'));if(scanMode==='fail')return route.fulfill({status:503,body:'unavailable'});if(scanMode==='wrongCrop')return route.fulfill({json:{...scanFixture,crop:[{name:'Potato',probability:.85}]}});if(scanMode==='weak')return route.fulfill({json:{...scanFixture,crop:[{name:'Tobacco',probability:.006}],diseases:[{name:'Target Spot',probability:.1}]}});if(scanMode==='delay')await new Promise(r=>setTimeout(r,300));return route.fulfill({json:scanFixture});});
  // Maps are independent of the manual coordinate and forecast flow.
  await page.route('https://unpkg.com/**',route=>route.abort());
  await page.goto(process.env.BASE_URL||'http://127.0.0.1:8080');check('language page opens first',await page.locator('#screen-language').evaluate(el=>el.classList.contains('active')));check('login and OTP screens removed',await page.locator('#screen-login,#screen-otp,#signOut').count()===0);await page.locator('[data-lang="en"]').click();
@@ -42,19 +42,19 @@ const {fixture,NOW}=require('./fixture.cjs');
  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8uoAAAAASUVORK5CYII=','base64');
  await page.locator('#globalScanInput').setInputFiles({name:'leaf.png',mimeType:'image/png',buffer:png});await page.waitForFunction(()=>!document.getElementById('runGlobalScan').disabled);await page.locator('#runGlobalScan').click();await page.locator('#globalScanResult').waitFor({state:'visible'});
  check('scan displays real response confidence',(await page.locator('#scanResultConfidence').innerText())==='92%');check('demo selector removed',await page.locator('#demoDiseaseSelect').count()===0);
- await page.evaluate(()=>{window.originalAssessment=state.pendingScan.assessment;state.pendingScan.assessment={...state.pendingScan.assessment,crops:[{name:'Tobacco',probability:.006}],diseases:[{...state.pendingScan.assessment.diseases[0],name:'Target Spot',probability:.804}]};renderCropAssessment(state.pendingScan.assessment);});
- check('low-confidence Tobacco falls back to registered Tomato',await page.locator('#scanResultCrop').innerText()==='Tomato'&&await page.locator('#scanCropFallbackNote').isVisible());
- check('disease confidence stays independent',await page.locator('#scanResultTitle').innerText()==='Target Spot'&&await page.locator('#scanResultConfidence').innerText()==='80.4%');
- const selectedField=await page.locator('#scanFieldSelect').inputValue();await page.locator('#scanFieldSelect').selectOption('unlinked');
- check('low-confidence crop without field is Uncertain',await page.locator('#scanResultCrop').innerText()==='Uncertain'&&await page.locator('#scanCropFallbackNote').isHidden());
- await page.locator('#scanFieldSelect').selectOption(selectedField);
- for(const lang of ['hi','mr','en']){await page.locator('#languageSwitch').selectOption(lang);check('fallback survives language switch '+lang,await page.locator('#scanResultCrop').innerText()===await page.evaluate(()=>t('cropName'))&&await page.locator('#scanResultConfidence').innerText()==='80.4%');}
- check('threshold, unknown probabilities and other field crops',await page.evaluate(()=>{
-  const show=(p,field={crop:'tomato'})=>scanCropDisplay({crops:[{name:'Tobacco',probability:p}]},field);
-  return show(.499).label==='Tomato'&&show(.5).label==='Tobacco · 50%'&&!show(.5).fallback&&show(null).label==='Tomato'&&show(undefined,null).label==='Uncertain'&&show(.006,{crop:'wheat'}).label==='Wheat';
- }));
- check('saved history hides low-confidence crop name',await page.evaluate(()=>!scanHistoryMarkup([{...state.pendingScan,assessment:state.pendingScan.assessment}],account().fields[0]).includes('Tobacco')));
- await page.evaluate(()=>{state.pendingScan.assessment=window.originalAssessment;renderCropAssessment(state.pendingScan.assessment);});
+ await page.evaluate(()=>{window.originalScan=state.pendingScan;window.originalAssessment=state.pendingScan.assessment;state.pendingScan={...state.pendingScan,assessment:{...state.pendingScan.assessment,crops:[{name:'Tobacco',probability:.006}],diseases:[{...state.pendingScan.assessment.diseases[0],name:'Target Spot',probability:.804}]}};renderCropAssessment(state.pendingScan.assessment);});
+ check('case B: Tobacco 0.6% uses registered Tomato',await page.locator('#scanResultCrop').innerText()==='Tomato');
+ check('case B: Target Spot confidence remains 80.4%',await page.locator('#scanResultConfidence').innerText()==='80.4%');
+ for(const lang of ['hi','mr','en']){await page.locator('#languageSwitch').selectOption(lang);check('tomato fallback translates '+lang,await page.locator('#scanResultCrop').innerText()===await page.evaluate(()=>t('cropName')));}
+ await page.evaluate(()=>{renderCropAssessment({...state.pendingScan.assessment,crops:[{name:'Potato',probability:.85}]});});
+ check('case C: non-tomato rejection hides all result details',await page.locator('#globalScanResult').isHidden()&&await page.locator('#scanLinkPanel').isHidden()&&(await page.locator('#scanValidationTitle').innerText())==='This scan does not appear to be a tomato leaf.');
+ check('rejected scan cannot be saved',await page.evaluate(()=>state.pendingScan===null));
+ await page.evaluate(()=>document.getElementById('saveGlobalScan').click());
+ check('rejection does not create a saved record',await page.evaluate(()=>!account().fields[0].scanHistory?.length));
+ await page.evaluate(()=>renderCropAssessment({crops:[{name:'Tobacco',probability:.006}],diseases:[{name:'Target Spot',probability:.1}]}));
+ check('case D: weak scan asks for clearer photo',(await page.locator('#scanValidationTitle').innerText())==="We couldn't reliably analyze this image."&&await page.locator('#retryTomatoPhoto').isVisible());
+ const chooser=page.waitForEvent('filechooser');await page.locator('#retryTomatoPhoto').click();await (await chooser).setFiles({name:'leaf.png',mimeType:'image/png',buffer:png});await page.waitForFunction(()=>!document.getElementById('runGlobalScan').disabled);await page.locator('#runGlobalScan').click();await page.locator('#globalScanResult').waitFor({state:'visible'});
+ check('case A: valid tomato retry shows normal result',await page.locator('#scanResultCrop').innerText()==='Tomato'&&await page.locator('#scanValidationMessage').isHidden());
  check('field scanner preselects field',await page.locator('#scanFieldSelect').inputValue()!=='unlinked');
  await page.locator('#saveGlobalScan').click();await page.locator('#viewUpdatedField').click();check('real result is saved in history',(await page.locator('#scanHistory').textContent()).includes('early blight'));check('photo does not alter forecast',await page.locator('#tomcastTotal').innerText()==='Very high');
  await page.reload();check('reload starts at language page',await page.locator('#screen-language').evaluate(el=>el.classList.contains('active')));await page.locator('[data-lang="en"]').click();await page.locator('#bottomNav [data-route="fields"]').click();check('field survives reload',(await page.locator('#fieldList').innerText()).includes('Vidisha tomatoes'));await page.locator('[data-open-field]').first().click();check('real result survives reload',(await page.locator('#scanHistory').textContent()).includes('early blight'));
@@ -90,6 +90,7 @@ const {fixture,NOW}=require('./fixture.cjs');
  await legacy.close();
 
  await page.locator('#bottomNav [data-route="scan"]').click();await page.locator('#globalScanInput').setInputFiles({name:'leaf.png',mimeType:'image/png',buffer:png});await page.waitForFunction(()=>!document.getElementById('runGlobalScan').disabled);
+ for(const mode of ['wrongCrop','weak']){scanMode=mode;await page.locator('#runGlobalScan').click();await page.locator('#scanValidationMessage').waitFor({state:'visible'});check('API response is gated before saving: '+mode,await page.evaluate(()=>state.pendingScan===null)&&await page.locator('#globalScanResult').isHidden()&&await page.locator('#scanLinkPanel').isHidden());}
  scanMode='fail';await page.locator('#runGlobalScan').click();await page.waitForFunction(()=>document.getElementById('globalScanError').textContent.length>0);
  check('failed scan shows retryable error and no fake result',await page.locator('#scanLinkPanel').isHidden()&&await page.locator('#globalScanResult').isHidden()&&await page.locator('#runGlobalScan').isEnabled());
  scanMode='delay';const before=scanRequests;await page.locator('#runGlobalScan').click();check('loading state disables duplicate scans',await page.locator('#scanLoading').isVisible()&&await page.locator('#runGlobalScan').isDisabled());await page.locator('#globalScanResult').waitFor({state:'visible'});check('retry succeeds with one request',scanRequests===before+1);
