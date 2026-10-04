@@ -1191,6 +1191,10 @@ async function recentDiseaseReports(){
  })().catch(error=>{console.warn('Supabase outbreak read failed:',error);outbreakCache.promise=null;throw error;});
  return outbreakCache.promise;
 }
+function weatherRiskText(risk){
+ const labels={low:'Low',mild:'Mild',moderate:'Moderate',high:'High',veryHigh:'Very high',unknown:'Unknown'};
+ return labels[risk]||'Unknown';
+}
 function outbreakLevel(count,weatherRisk){
  if(count>=3&&(weatherRisk==='high'||weatherRisk==='veryHigh'))return {label:'High outbreak risk',detail:'Multiple nearby reports + favourable TOMCAST weather'};
  if(count>=3)return {label:'Outbreak watch',detail:'3 or more unique nearby fields reported the same disease'};
@@ -1205,7 +1209,7 @@ async function loadNearbyOutbreaks(){
  box.innerHTML='<p class="small">Checking nearby reports…</p>';
  try{
   const reports=await recentDiseaseReports();
-  const cards=[];
+  const bestByDisease=new Map();
   fields.forEach((field,index)=>{
     if(!Number.isFinite(Number(field.lat))||!Number.isFinite(Number(field.lon)))return;
     const byDisease=new Map();
@@ -1219,13 +1223,27 @@ async function loadNearbyOutbreaks(){
     const weatherRisk=calculateTomcast(field).risk;
     for(const [disease,unique] of byDisease.entries()){
       const count=unique.size,level=outbreakLevel(count,weatherRisk);
-      if(!level)return;
+      if(!level)continue;
       const maxDistance=Math.max(...[...unique.values()].map(x=>x.distance));
-      cards.push({count,field,index,disease,level,maxDistance,weatherRisk});
+      const candidate={count,field,index,disease,level,maxDistance,weatherRisk};
+      const current=bestByDisease.get(disease);
+      const rank=r=>({veryHigh:5,high:4,moderate:3,mild:2,low:1,unknown:0}[r]||0);
+      if(!current||candidate.count>current.count||(candidate.count===current.count&&rank(candidate.weatherRisk)>rank(current.weatherRisk))||(candidate.count===current.count&&rank(candidate.weatherRisk)===rank(current.weatherRisk)&&candidate.maxDistance<current.maxDistance)){
+        bestByDisease.set(disease,candidate);
+      }
     }
   });
-  cards.sort((a,b)=>b.count-a.count);
-  box.innerHTML=cards.length?cards.map(c=>'<div class="alerts-field-item"><strong>'+escapeHtml(c.level.label+' · '+c.disease)+'</strong><p>'+escapeHtml(c.count+' unique affected fields within 5 km of '+fieldLabel(c.field,c.index)+'. Farthest matched report: '+c.maxDistance.toFixed(1)+' km.')+'</p><p class="small">'+escapeHtml(c.level.detail)+'</p></div>').join(''):'<p class="small">No nearby disease reports found within 5 km in the last 5 days.</p>';
+  const cards=[...bestByDisease.values()].sort((a,b)=>b.count-a.count||a.disease.localeCompare(b.disease));
+  box.innerHTML=cards.length?cards.map(c=>{
+    const weather=weatherRiskText(c.weatherRisk);
+    const overall=c.level.label;
+    return '<div class="alerts-field-item"><strong>'+escapeHtml(c.disease+' · '+overall)+'</strong>'+
+      '<p><strong>Nearby cases:</strong> '+escapeHtml(String(c.count))+' unique affected fields</p>'+
+      '<p><strong>Area:</strong> within 5 km · farthest matched report '+escapeHtml(c.maxDistance.toFixed(1))+' km</p>'+
+      '<p><strong>Weather suitability:</strong> '+escapeHtml(weather)+'</p>'+
+      '<p><strong>Overall risk:</strong> '+escapeHtml(overall)+'</p>'+
+      '<p class="small">'+escapeHtml(c.level.detail)+'</p></div>';
+  }).join(''):'<p class="small">No nearby disease reports found within 5 km in the last 5 days.</p>';
  }catch(error){
   const message=error?.message||error?.details||'Unknown database error';
   box.innerHTML='<p class="small">Nearby reports could not be loaded.</p><p class="small">Database message: '+escapeHtml(String(message))+'</p>';
