@@ -42,3 +42,5 @@ Updated README to reflect current functionality, service configuration, local se
 - No new backend or diagnostic claims were introduced. The dashboard continues to describe photo results as automated suggestions and TOMCAST as weather favourability, not confirmed infection.
 - Changes committed to `main`: `d2c722a` (stylesheet), `52f85b3` (application shell and dashboard markup), `364af83` (live dashboard data binding), `b0d3683` (header polish).
 - Automated CI status checks were not configured/reported for these commits. Run the repository's documented Node and Playwright suites before treating the UI as fully regression-verified.
+
+- Follow-up layout fix: offset the signed-in desktop app canvas by the fixed 258px sidebar width above 1120px, preventing the navigation rail from covering the dashboard content. The compact-rail and mobile breakpoints retain their own offsets.
