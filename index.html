@@ -1137,6 +1137,8 @@ function showScreen(name,replace=false){
   if(name==='field'&&!activeField()) name='fields';
   if(state.page==='scan'&&name!=='scan')cancelCropScan();
   state.page=name;
+  const pageTitles={home:'Your farm overview',fields:'My fields',field:'Field intelligence',scan:'Crop health scanner',alerts:'Alerts & forecasts',support:'Farmer support',location:'Pin your field',crop:'Crop details',done:'Field saved',language:'Choose your language'};
+  if($('topbarTitle'))$('topbarTitle').textContent=pageTitles[name]||'FasalSathi';
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+name));
   const signed=!!account()&&name!=='language'; document.body.classList.toggle('signed-in',signed); $('bottomNav').hidden=!signed;
   $('languageSwitch').hidden=name==='language';
@@ -1163,7 +1165,52 @@ document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',(
 $('languageSwitch').addEventListener('change',e=>{state.lang=e.target.value;db.lang=state.lang;persist();applyLanguage();});
 document.querySelectorAll('[data-back],[data-route]').forEach(b=>b.addEventListener('click',()=>{const route=b.dataset.back||b.dataset.route;if(route==='scan')openScanner();else showScreen(route);}));
 function renderHome(){
-  const fields=account()?.fields||[];const first=fields[0];$('homeLocationTitle').textContent=first?fieldLabel(first,0):t('noLocation');$('homeLocationHint').textContent=t(first?'savedLocationHint':'noLocationHint');
+  const fields=account()?.fields||[];
+  const first=fields.find(f=>f.id===state.activeFieldId)||fields[0]||null;
+  $('homeLocationTitle').textContent=first?fieldLabel(first,fields.indexOf(first)):t('noLocation');
+  $('homeLocationHint').textContent=t(first?'savedLocationHint':'noLocationHint');
+  const scans=[...(account()?.unlinkedScans||[]),...fields.flatMap(f=>(Array.isArray(f.scanHistory)?f.scanHistory:[]).map(scan=>({...scan,fieldName:fieldLabel(f,fields.indexOf(f)),fieldId:f.id})))].sort((a,b)=>(b.at||0)-(a.at||0));
+  const scanCount=(account()?.unlinkedScans||[]).length+fields.reduce((sum,f)=>sum+(Array.isArray(f.scanHistory)?f.scanHistory.length:0),0);
+  $('dashFieldCount').textContent=String(fields.length);
+  $('dashScanCount').textContent=String(scanCount);
+  $('dashActiveField').textContent=first?fieldLabel(first,fields.indexOf(first)):'—';
+  $('dashActiveField').title=first?fieldLabel(first,fields.indexOf(first)):'';
+  $('dashRiskMetric').textContent=first?t(riskKey('risk',calculateTomcast(first).risk)):'—';
+  $('dashRiskCaption').textContent=first?(calculateTomcast(first).available?'Five-day weather outlook':'Forecast needs a complete sync'):'Add a field to begin';
+  $('dashOpenField').hidden=!first;
+  $('dashOpenField').onclick=()=>{if(first)openFieldDashboard(first.id);};
+  const forecast=first?calculateTomcast(first):null;
+  const risk=forecast?.risk||'unknown';
+  $('dashRiskDot').className='dash-risk-dot '+risk;
+  $('dashRiskTitle').textContent=first?(forecast.available?t('peakFavourability',{risk:t(riskKey('risk',risk))}):t('forecastUnavailable')):'Forecast not available';
+  $('dashRiskText').textContent=first?(forecast.stale?t('staleWeather'):forecast.available?t('forecastExplanation'):t('forecastUnavailable')):'Choose a field location to calculate weather favourability.';
+  $('dashRiskBadge').textContent=first?t(riskKey('risk',risk)):'Unavailable';
+  $('dashRiskBadge').className='status-pill'+(risk==='low'?' green':'');
+  $('dashForecastSubtitle').textContent=first?fieldLabel(first,fields.indexOf(first))+' · '+(forecast.available?'Next five days':'Waiting for complete weather data'):'Add a field to see its local forecast.';
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  $('dashDayGrid').innerHTML=first&&forecast.days?.length?forecast.days.map(day=>{
+    const d=new Date(day.date+'T12:00:00');
+    const dayName=dayNames[(d.getDay()+6)%7];
+    const value=forecast.stale?null:day.dsv;
+    const key=Number.isInteger(value)&&value>=0&&value<=4?['low','mild','moderate','high','veryHigh'][value]:'unknown';
+    const height=value===null?5:Math.max(8,Math.round((value+1)/5*60));
+    return '<div class="dash-day"><span class="dash-day-name">'+dayName+'</span><span class="dash-day-date">'+escapeHtml(fieldDateLabel(day.date))+'</span><div class="dash-day-track"><span class="dash-day-bar '+key+'" style="height:'+height+'px"></span></div><span class="dash-day-risk '+key+'">'+escapeHtml(dailyRiskLabel(value))+'</span></div>';
+  }).join(''):'<div class="dash-empty" style="grid-column:1/-1"><strong>'+(first?'Forecast data is not ready':'Your forecast will appear here')+'</strong><p>'+(first?'Refresh the field forecast when a complete five-day weather response is available.':'Save a tomato field to retrieve its local hourly weather data.')+'</p>'+(first?'<button class="btn btn-secondary" type="button" data-route="alerts">View forecast status</button>':'<button class="btn btn-secondary" type="button" data-add-field>Add your first field</button>')+'</div>';
+  $('dashFieldList').innerHTML=fields.length?fields.slice(0,4).map((field,i)=>{
+    const fcast=calculateTomcast(field),label=t(riskKey('risk',fcast.risk));
+    return '<button type="button" class="dash-field-row" data-dashboard-field="'+escapeHtml(field.id)+'" style="width:100%;text-align:left;cursor:pointer"><span class="dash-field-avatar"><svg class="icon"><use href="#i-leaf"></use></svg></span><span class="dash-field-info"><strong>'+escapeHtml(fieldLabel(field,i))+'</strong><span>'+escapeHtml(t('cropName')+' · '+stageName(field.plantStage))+'</span></span><span class="status-pill '+(fcast.risk==='low'?'green':'')+'">'+escapeHtml(fcast.available?label:t('forecastUnavailable'))+'</span></button>';
+  }).join(''):'<div class="dash-empty"><strong>No fields registered</strong><p>Add your first tomato field to start building a local crop-health picture.</p><button type="button" class="btn btn-primary" data-add-field>Add a field</button></div>';
+  const weather=first?.weather;
+  $('dashWeatherPlace').textContent=first?fieldLabel(first,fields.indexOf(first))+' · '+(weather?.timezone||'Field location'):'Waiting for a field location';
+  $('dashTemp').textContent=Number.isFinite(weather?.currentTemp)?weather.currentTemp.toFixed(1)+'°':'—';
+  $('dashHumidity').textContent=Number.isFinite(weather?.currentHumidity)?Math.round(weather.currentHumidity)+'%':'—';
+  $('dashRain').textContent=Number.isFinite(weather?.rain24h)?weather.rain24h.toFixed(1)+' mm':'—';
+  $('dashWetHours').textContent=Number.isFinite(weather?.estimatedWetHours)?weather.estimatedWetHours+' h':'—';
+  $('dashWeatherUpdated').textContent=weather?.fetchedAt?'Synced '+new Date(weather.fetchedAt).toLocaleTimeString(state.lang==='hi'?'hi-IN':state.lang==='mr'?'mr-IN':'en-IN',{hour:'2-digit',minute:'2-digit'}):'Live field data appears after sync';
+  $('dashRecentScans').innerHTML=scans.length?scans.slice(0,4).map(scan=>{
+    const thumb=scan.previewData&&/^data:image\/(jpeg|png|webp);base64,/.test(scan.previewData)?'<img class="dash-recent-thumb" src="'+escapeHtml(scan.previewData)+'" alt="">':'<span class="dash-recent-icon"><svg class="icon"><use href="#i-scan"></use></svg></span>';
+    return '<div class="dash-recent-item">'+thumb+'<div class="dash-recent-copy"><strong>'+escapeHtml(scan.result||t('photoRecorded'))+'</strong><span>'+escapeHtml(scan.fieldName||t('notLinked'))+' · '+escapeHtml(scanDate(scan.at))+'</span></div></div>';
+  }).join(''):'<div class="dash-empty"><strong>No photo assessments yet</strong><p>Use the crop scanner to assess a clear tomato-leaf photo.</p><button type="button" class="btn btn-secondary" data-route="scan">Open crop scanner</button></div>';
 }
 const stageTranslationKey={not_planted:'stageNotPlanted',seedling:'stageSeedling',vegetative:'stageVegetative',flowering:'stageFlowering',fruiting:'stageFruiting',harvest:'stageHarvest',unknown:'stageUnknown'};
 function stageName(value){return value?t(stageTranslationKey[value]||'stageUnknown'):t('notProvided');}
@@ -1421,6 +1468,7 @@ $('fieldEditDetails').addEventListener('click',()=>{const field=activeField();if
 $('fieldEditLocation').addEventListener('click',()=>{const field=activeField();if(!field)return;loadField(field);showScreen('location');});
 $('fieldStartScan').addEventListener('click',()=>{const field=activeField();if(field)openScanner(field.id);});
 $('homeQuickScan').addEventListener('click',()=>openScanner());
+$('dashFieldList').addEventListener('click',e=>{const row=e.target.closest('[data-dashboard-field]');if(row)openFieldDashboard(row.dataset.dashboardField);});
 $('globalScanInput').addEventListener('change',async event=>{
  const file=event.target.files?.[0];resetGlobalScanner();if(!file)return;const request=scanReadRequest;
  if(file.size>5*1024*1024){setError('globalScanError','scanTooLarge');return;}if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)){setError('globalScanError','invalidImage');return;}
