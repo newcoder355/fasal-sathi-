@@ -474,3 +474,37 @@ body.signed-in .app {
   body.signed-in { padding-left: 0; }
   body.signed-in .app { margin-left: 0 !important; width: 100% !important; }
 }
+
+/* Final layout model: keep the app viewport-wide and offset each content
+   region next to the fixed rail. Do not offset the body or the wrapper. */
+body.signed-in {
+  padding-left: 0 !important;
+}
+body.signed-in .app {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+@media (min-width: 1121px) {
+  body.signed-in .app > .topbar,
+  body.signed-in .app > #setupProgress,
+  body.signed-in .app > main {
+    margin-left: 258px !important;
+    width: calc(100% - 258px) !important;
+  }
+}
+@media (min-width: 761px) and (max-width: 1120px) {
+  body.signed-in .app > .topbar,
+  body.signed-in .app > #setupProgress,
+  body.signed-in .app > main {
+    margin-left: 83px !important;
+    width: calc(100% - 83px) !important;
+  }
+}
+@media (max-width: 760px) {
+  body.signed-in .app > .topbar,
+  body.signed-in .app > #setupProgress,
+  body.signed-in .app > main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
