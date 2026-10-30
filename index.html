@@ -716,6 +716,7 @@
     .toast { background: #282b29; }
     a { color: inherit; text-underline-offset: 3px; }
 </style>
+<link rel="stylesheet" href="app.css" />
 </head>
 
 <body><svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
@@ -730,7 +731,21 @@
 <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6 M12 7v.1"/></symbol>
 <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="6" width="10" height="15" rx="5"/><path d="m9 3 1 3 m5-3-1 3 M3 9l4 2 M3 15h4 M3 21l5-3 M21 9l-4 2 M21 15h-4 M21 21l-5-3 M12 7v13"/></symbol>
 <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3 M16 4h3a1 1 0 0 1 1 1v3 M20 16v3a1 1 0 0 1-1 1h-3 M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="4"/></symbol>
-</defs></svg><div class="app"><header class="topbar"><div class="brand"><div class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-leaf"></use></svg></div><div>FasalSathi</div></div><div class="header-tools"><span class="prototype-badge" data-i18n="demoBadge">Demo v3</span><label for="languageSwitch" class="sr-only" data-i18n="selectedLanguage">Language</label><select id="languageSwitch" hidden><option value="hi">हिंदी</option><option value="mr">मराठी</option><option value="en">English</option></select></div></header><div class="progress-wrap" id="setupProgress"><div class="progress" role="progressbar" id="progressTrack" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33"><span id="progressBar"></span></div></div><main id="mainContent"><section class="screen active" id="screen-language">
+</defs></svg><div class="app"><aside class="sidebar" aria-label="Primary navigation">
+  <div class="side-brand"><div class="side-brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-leaf"></use></svg></div><div class="side-brand-copy"><div class="side-brand-name">FasalSathi</div><span class="side-brand-sub">CROP INTELLIGENCE</span></div></div>
+  <div class="side-section-label">WORKSPACE</div>
+  <nav class="side-nav" aria-label="Workspace">
+    <button type="button" class="nav-item" data-route="home"><svg class="icon"><use href="#i-home"></use></svg><span data-i18n="navHome">Overview</span></button>
+    <button type="button" class="nav-item" data-route="fields"><svg class="icon"><use href="#i-fields"></use></svg><span data-i18n="navFields">My fields</span></button>
+    <button type="button" class="nav-item" data-route="scan"><svg class="icon"><use href="#i-scan"></use></svg><span data-i18n="navScan">Crop scanner</span></button>
+    <button type="button" class="nav-item" data-route="alerts"><svg class="icon"><use href="#i-bell"></use></svg><span data-i18n="navAlerts">Alerts & forecasts</span></button>
+    <button type="button" class="nav-item" data-route="support"><svg class="icon"><use href="#i-help"></use></svg><span data-i18n="navSupport">Support</span></button>
+  </nav>
+  <div class="sidebar-spacer"></div>
+  <button type="button" class="sidebar-add" data-add-field><svg class="icon"><use href="#i-fields"></use></svg><span data-i18n="addField">Add a field</span></button>
+  <div class="sidebar-note"><strong>Field-first intelligence</strong><p>Weather-led tomato disease guidance, photo assessments and field records in one workspace.</p></div>
+  <div class="sidebar-foot"><span>FASALSATHI</span><span>SIH 26131</span></div>
+</aside><header class="topbar"><div class="brand"><div class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-leaf"></use></svg></div><div>FasalSathi</div></div><div class="topbar-context"><span class="topbar-kicker">AGRICULTURE INTELLIGENCE WORKSPACE</span><strong id="topbarTitle">Your farm overview</strong></div><div class="header-tools"><span class="prototype-badge" data-i18n="demoBadge">Demo v3</span><label for="languageSwitch" class="sr-only" data-i18n="selectedLanguage">Language</label><select id="languageSwitch" hidden><option value="hi">हिंदी</option><option value="mr">मराठी</option><option value="en">English</option></select></div></header><div class="progress-wrap" id="setupProgress"><div class="progress" role="progressbar" id="progressTrack" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33"><span id="progressBar"></span></div></div><main id="mainContent"><section class="screen active" id="screen-language">
         <div class="section-head">
           <div class="eyebrow">FasalSathi</div>
           <h1>भाषा चुनिए</h1>
@@ -763,14 +778,53 @@
           </button>
         </div>
       </section><section class="screen" id="screen-home">
-        <div class="welcome-row">
-          <div><div class="eyebrow" data-i18n="homeEyebrow">YOUR FARM COMPANION</div><h1 data-i18n="homeTitle">Hello, farmer!</h1><p data-i18n="homeSubtitle">Keep an eye on your crops and your area.</p></div>
-          <div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-leaf"></use></svg></div>
+  <div class="dash-head">
+    <div class="dash-head-copy"><div class="eyebrow">FASALSATHI · FARM INTELLIGENCE</div><h1 data-i18n="homeTitle">Your farm, in focus.</h1><p data-i18n="homeSubtitle">A clear view of field conditions, crop health and weather-led disease risk.</p></div>
+    <div class="dash-date"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><span id="homeLocationTitle">No field added yet</span></div>
+  </div>
+  <section class="dash-hero" aria-label="Crop health introduction">
+    <div class="dash-hero-copy"><div class="dash-hero-kicker">SMART TOMATO CROP MONITORING</div><h2>Spot the signals.<br>Protect the harvest.</h2><p>Bring crop photo assessments and local weather intelligence together to make more informed field decisions.</p><button type="button" class="btn" id="homeQuickScan"><svg class="icon"><use href="#i-scan"></use></svg><span data-i18n="scanNow">Check a crop photo</span></button></div>
+    <div class="dash-hero-art" aria-hidden="true"><div class="dash-plant-orbit"><svg viewBox="0 0 180 180" fill="none"><path d="M89 151c-2-30 1-62 4-92" stroke="#CBE7A5" stroke-width="5" stroke-linecap="round"/><path d="M92 104c-31 1-52-12-55-38 27-4 47 8 55 38Z" fill="#9BCB78" stroke="#D9EBAF" stroke-width="2"/><path d="M94 82c4-29 24-46 51-42-1 27-19 43-51 42Z" fill="#6FB17A" stroke="#C9E7A5" stroke-width="2"/><path d="M90 128c-22 1-36-8-42-26 21-3 36 6 42 26Z" fill="#75B17A" stroke="#C9E7A5" stroke-width="2"/><path d="M92 151c-17 8-34 9-51 5m51-5c17 8 34 9 51 5" stroke="#D7EBAE" stroke-width="3" stroke-linecap="round"/><circle cx="90" cy="37" r="15" fill="#D8ECA4" opacity=".95"/><path d="M90 20c-7-8-16-5-18 2 7 5 13 4 18-2Zm0 0c7-8 16-5 18 2-7 5-13 4-18-2Z" fill="#8EC37C"/></svg></div></div>
+  </section>
+  <div class="dash-metric-grid" aria-label="Farm summary">
+    <article class="dash-metric"><div class="dash-metric-icon"><svg class="icon"><use href="#i-fields"></use></svg></div><div><small>Registered fields</small><strong id="dashFieldCount">0</strong><em>Saved in this workspace</em></div></article>
+    <article class="dash-metric"><div class="dash-metric-icon"><svg class="icon"><use href="#i-scan"></use></svg></div><div><small>Photo assessments</small><strong id="dashScanCount">0</strong><em>Across your fields</em></div></article>
+    <article class="dash-metric"><div class="dash-metric-icon"><svg class="icon"><use href="#i-bug"></use></svg></div><div><small>Weather risk outlook</small><strong id="dashRiskMetric">—</strong><em id="dashRiskCaption">Add a field to begin</em></div></article>
+    <article class="dash-metric"><div class="dash-metric-icon"><svg class="icon"><use href="#i-pin"></use></svg></div><div><small>Active field</small><strong id="dashActiveField">—</strong><em>Selected field location</em></div></article>
+  </div>
+  <div class="dash-main-grid">
+    <div class="dash-column">
+      <section class="dash-panel">
+        <div class="dash-panel-head"><div><div class="dash-label">WEATHER-LED DISEASE MODEL</div><h2>Five-day disease outlook</h2><p id="dashForecastSubtitle">Add a field to see its local forecast.</p></div><button type="button" class="text-button" data-route="alerts">All forecasts&nbsp; →</button></div>
+        <div class="dash-risk-summary"><span class="dash-risk-dot unknown" id="dashRiskDot"></span><div class="dash-risk-copy"><strong id="dashRiskTitle">Forecast not available</strong><span id="dashRiskText">Choose a field location to calculate weather favourability.</span></div><span class="status-pill" id="dashRiskBadge">Unavailable</span></div>
+        <div class="dash-day-grid" id="dashDayGrid"><div class="dash-empty" style="grid-column:1/-1"><strong>Your forecast will appear here</strong><p>Save a tomato field to retrieve its local hourly weather data.</p><button class="btn btn-secondary" type="button" data-add-field>Add your first field</button></div></div>
+        <div class="dash-disclaimer">TOMCAST estimates weather conditions favourable to disease development. It does not confirm infection or provide a calibrated probability. Relative humidity is used as a leaf-wetness proxy.</div>
+      </section>
+      <section class="dash-panel">
+        <div class="dash-panel-head"><div><div class="dash-label">YOUR FARM NETWORK</div><h2>Field overview</h2><p>Jump into a field to see its detailed forecast and scan history.</p></div><button type="button" class="text-button" data-route="fields">Manage fields&nbsp; →</button></div>
+        <div id="dashFieldList" class="dash-field-list"><div class="dash-empty"><strong>No fields registered</strong><p>Add your first tomato field to start building a local crop-health picture.</p><button type="button" class="btn btn-primary" data-add-field>Add a field</button></div></div>
+      </section>
+    </div>
+    <div class="dash-column">
+      <section class="dash-panel">
+        <div class="dash-panel-head"><div><div class="dash-label">LOCAL WEATHER CONDITIONS</div><h2>Field weather</h2><p id="dashWeatherPlace">Waiting for a field location</p></div><span class="sample-pill">Open-Meteo</span></div>
+        <div class="dash-weather-grid">
+          <div class="dash-weather-stat"><small>Air temperature</small><strong id="dashTemp">—</strong><span>Current conditions</span></div>
+          <div class="dash-weather-stat"><small>Relative humidity</small><strong id="dashHumidity">—</strong><span>Current conditions</span></div>
+          <div class="dash-weather-stat"><small>Rain forecast</small><strong id="dashRain">—</strong><span>Next 24 hours</span></div>
+          <div class="dash-weather-stat"><small>Estimated wet hours</small><strong id="dashWetHours">—</strong><span>Humidity proxy · 24 h</span></div>
         </div>
-        <div class="quick-scan-card"><div><h2 data-i18n="quickScanTitle">See a crop problem?</h2><p data-i18n="quickScanText">Scan first. Choose the field after the result.</p></div><button type="button" class="btn" id="homeQuickScan" data-i18n="scanNow">Scan now</button></div>
-        <div class="demo-banner"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg><div><strong data-i18n="demoAlertsTitle">Sample alerts, not live reports</strong><p data-i18n="demoAlertsText">These examples show how nearby updates will look. Local monitoring is not connected yet.</p></div></div>
-        <div class="location-strip"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><div><strong id="homeLocationTitle"></strong><p class="small" id="homeLocationHint"></p></div><button class="text-button" data-route="fields" data-i18n="viewFields">View fields</button></div>
-      </section><section class="screen" id="screen-fields"><div class="section-head"><div class="eyebrow" data-i18n="fieldsEyebrow">CROP & LOCATION</div><h1 data-i18n="fieldsTitle">My fields</h1><p data-i18n="fieldsSubtitle">Keep your fields together, with a crop and location for each.</p></div><div id="fieldList"></div><div id="fieldsEmpty" class="empty-state"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-fields"></use></svg></div><h2 data-i18n="noFields">Add your first field</h2><p data-i18n="noFieldsText">Choose the field location first, then add crop details.</p><button type="button" class="btn btn-primary" data-add-field data-i18n="addField">+ Add field</button></div><button type="button" class="btn btn-primary full" id="addAnotherField" data-add-field data-i18n="addField" hidden>+ Add field</button><p class="demo-note" data-i18n="localOnly">Saved on this device only. Cloud sync is not available yet.</p></section><section class="screen" id="screen-support"><div class="section-head"><div class="eyebrow" data-i18n="supportEyebrow">A HELPING HAND</div><h1 data-i18n="supportTitle">Support</h1><p data-i18n="supportSubtitle">Guidance from your local agricultural extension team.</p></div><div class="support-card"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></div><span class="sample-pill" data-i18n="comingSoon">Coming soon</span><h2 data-i18n="extensionTitle">Extension staff support</h2><p data-i18n="extensionText">This is where you will be able to reach your local extension staff for help with crop concerns.</p><button type="button" class="btn btn-secondary full" disabled data-i18n="contactSupport">Contact support</button><p class="demo-note" data-i18n="supportNotConnected">Calling and messaging are not connected in this prototype.</p></div></section><section class="screen" id="screen-crop">
+        <div class="dash-weather-foot"><span id="dashWeatherUpdated">Live field data appears after sync</span><button type="button" class="text-button" id="dashOpenField" hidden>Open field&nbsp; →</button></div>
+      </section>
+      <section class="dash-panel">
+        <div class="dash-panel-head"><div><div class="dash-label">LATEST ACTIVITY</div><h2>Recent photo checks</h2><p>Your most recent saved crop assessments.</p></div><button type="button" class="text-button" data-route="scan">New scan&nbsp; →</button></div>
+        <div id="dashRecentScans" class="dash-recent-list"><div class="dash-empty"><strong>No photo assessments yet</strong><p>Use the crop scanner to assess a clear tomato-leaf photo.</p><button type="button" class="btn btn-secondary" data-route="scan">Open crop scanner</button></div></div>
+      </section>
+      <div class="dash-footer-note"><svg class="icon"><use href="#i-info"></use></svg><span>Photo assessments are automated suggestions, not confirmed diagnoses. Confirm symptoms and treatment decisions with a local agricultural expert.</span></div>
+    </div>
+  </div>
+  <div class="sr-only" id="homeLocationHint"></div>
+</section><section class="screen" id="screen-fields"><div class="section-head"><div class="eyebrow" data-i18n="fieldsEyebrow">CROP & LOCATION</div><h1 data-i18n="fieldsTitle">My fields</h1><p data-i18n="fieldsSubtitle">Keep your fields together, with a crop and location for each.</p></div><div id="fieldList"></div><div id="fieldsEmpty" class="empty-state"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-fields"></use></svg></div><h2 data-i18n="noFields">Add your first field</h2><p data-i18n="noFieldsText">Choose the field location first, then add crop details.</p><button type="button" class="btn btn-primary" data-add-field data-i18n="addField">+ Add field</button></div><button type="button" class="btn btn-primary full" id="addAnotherField" data-add-field data-i18n="addField" hidden>+ Add field</button><p class="demo-note" data-i18n="localOnly">Saved on this device only. Cloud sync is not available yet.</p></section><section class="screen" id="screen-support"><div class="section-head"><div class="eyebrow" data-i18n="supportEyebrow">A HELPING HAND</div><h1 data-i18n="supportTitle">Support</h1><p data-i18n="supportSubtitle">Guidance from your local agricultural extension team.</p></div><div class="support-card"><div class="icon-box"><svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg></div><span class="sample-pill" data-i18n="comingSoon">Coming soon</span><h2 data-i18n="extensionTitle">Extension staff support</h2><p data-i18n="extensionText">This is where you will be able to reach your local extension staff for help with crop concerns.</p><button type="button" class="btn btn-secondary full" disabled data-i18n="contactSupport">Contact support</button><p class="demo-note" data-i18n="supportNotConnected">Calling and messaging are not connected in this prototype.</p></div></section><section class="screen" id="screen-crop">
         <div class="section-head"><div class="eyebrow" data-i18n="fieldStepDetails">ADD FIELD · 2 OF 2</div><h1 data-i18n="fieldDetailsTitle">Crop and field details</h1><p data-i18n="fieldDetailsSubtitle">Crop is required. Add the other details only if they are already known or available.</p></div>
         <div class="selected-location-card"><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg><div><strong data-i18n="selectedLocation">Selected field location</strong><p hidden id="detailsCoordinates" class="small">—</p></div><button type="button" class="text-button" id="changeFieldLocation" data-i18n="editLocation">Edit location</button></div>
         <form id="fieldDetailsForm" novalidate>
