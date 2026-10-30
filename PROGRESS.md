@@ -30,3 +30,15 @@ Updated README to reflect current functionality, service configuration, local se
 3. Run relevant checks documented in README. Live image tests consume provider credits; use mocked responses for routine regressions.
 4. Push tested, coherent checkpoints during longer tasks. Record completed work and any remaining blockers here.
 5. Never commit Kindwise secrets. The Supabase publishable key is frontend configuration, not a provider secret.
+
+
+## Interface redesign checkpoint — 31 October 2026
+
+- Added `app.css` as a dedicated visual layer, preserving the existing static HTML/JavaScript deployment model.
+- Replaced the narrow centered app shell on signed-in screens with a responsive workspace: forest-green desktop sidebar, sticky utility header, spacious content canvas, and compact mobile bottom navigation.
+- Rebuilt the home screen as a data-driven farm overview with field count, photo assessment count, selected field, TOMCAST five-day outlook, local Open-Meteo conditions, field list and recent photo assessments.
+- Connected dashboard cards to the existing browser-stored field and scan records. Forecast labels are derived from the existing TOMCAST engine; unavailable/stale data remain unavailable rather than being represented as low risk.
+- Preserved `tomcast.js`, `crop-scan.js`, Supabase calls, field storage, language dictionaries, existing setup flow and existing screen IDs.
+- No new backend or diagnostic claims were introduced. The dashboard continues to describe photo results as automated suggestions and TOMCAST as weather favourability, not confirmed infection.
+- Changes committed to `main`: `d2c722a` (stylesheet), `52f85b3` (application shell and dashboard markup), `364af83` (live dashboard data binding), `b0d3683` (header polish).
+- Automated CI status checks were not configured/reported for these commits. Run the repository's documented Node and Playwright suites before treating the UI as fully regression-verified.
