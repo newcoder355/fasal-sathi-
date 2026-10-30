@@ -441,3 +441,11 @@ textarea { min-height: 100px; line-height: 1.55; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
 }
+
+.topbar-context { display:none; }
+body.signed-in .topbar > .brand { display:none; }
+body.signed-in .topbar-context { display:flex; }
+@media (max-width:760px) {
+  body.signed-in .topbar-context { display:flex; }
+  body.signed-in .topbar-context strong { font-size:15px; }
+}
