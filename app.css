@@ -508,3 +508,77 @@ body.signed-in .app {
     width: 100% !important;
   }
 }
+
+/* Definitive sidebar layout: use a real two-column grid instead of
+   overlaying a fixed rail and repeatedly compensating with margins. */
+@media (min-width: 761px) {
+  body.signed-in .app {
+    display: grid !important;
+    grid-template-columns: 258px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  body.signed-in .app > .sidebar {
+    display: flex !important;
+    position: sticky !important;
+    inset: auto !important;
+    top: 0 !important;
+    grid-column: 1 !important;
+    grid-row: 1 / span 3 !important;
+    align-self: start !important;
+    width: 258px !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    max-height: 100vh !important;
+  }
+  body.signed-in .app > .topbar,
+  body.signed-in .app > #setupProgress,
+  body.signed-in .app > main {
+    grid-column: 2 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+  body.signed-in .app > main {
+    padding: 34px clamp(22px, 3.5vw, 54px) 68px !important;
+  }
+}
+@media (min-width: 761px) and (max-width: 1120px) {
+  body.signed-in .app {
+    grid-template-columns: 83px minmax(0, 1fr) !important;
+  }
+  body.signed-in .app > .sidebar {
+    width: 83px !important;
+    padding: 23px 11px 17px !important;
+  }
+  body.signed-in .app > .topbar,
+  body.signed-in .app > #setupProgress,
+  body.signed-in .app > main {
+    margin: 0 !important;
+    width: 100% !important;
+  }
+}
+@media (max-width: 760px) {
+  body.signed-in .app {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  body.signed-in .app > .sidebar { display: none !important; }
+  body.signed-in .app > .topbar,
+  body.signed-in .app > #setupProgress,
+  body.signed-in .app > main {
+    display: block;
+    width: 100% !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+  body.signed-in .app > main {
+    padding: 23px 17px calc(105px + env(safe-area-inset-bottom)) !important;
+  }
+}
