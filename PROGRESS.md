@@ -44,3 +44,5 @@ Updated README to reflect current functionality, service configuration, local se
 - Automated CI status checks were not configured/reported for these commits. Run the repository's documented Node and Playwright suites before treating the UI as fully regression-verified.
 
 - Follow-up layout fix: offset the signed-in desktop app canvas by the fixed 258px sidebar width above 1120px, preventing the navigation rail from covering the dashboard content. The compact-rail and mobile breakpoints retain their own offsets.
+
+- Second sidebar-overlap correction: reserve the fixed rail width using `body.signed-in { padding-left: ... }` at desktop/tablet breakpoints instead of relying on shifting the app wrapper that contains the fixed rail. The app wrapper is explicitly reset to full width of the body's remaining content area; mobile returns to zero left padding.
