@@ -457,3 +457,20 @@ body.signed-in .topbar-context { display:flex; }
     width: calc(100% - 258px);
   }
 }
+
+/* Robust shell layout: reserve rail space on the body, not on the app wrapper.
+   The rail is a fixed descendant of .app, so shifting .app itself is brittle. */
+body.signed-in {
+  padding-left: 258px;
+}
+body.signed-in .app {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 1120px) and (min-width: 761px) {
+  body.signed-in { padding-left: 83px; }
+}
+@media (max-width: 760px) {
+  body.signed-in { padding-left: 0; }
+  body.signed-in .app { margin-left: 0 !important; width: 100% !important; }
+}
