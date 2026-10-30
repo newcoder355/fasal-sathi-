@@ -449,3 +449,11 @@ body.signed-in .topbar-context { display:flex; }
   body.signed-in .topbar-context { display:flex; }
   body.signed-in .topbar-context strong { font-size:15px; }
 }
+
+/* Keep the desktop workspace fully clear of the fixed navigation rail. */
+@media (min-width: 1121px) {
+  body.signed-in .app {
+    margin-left: 258px;
+    width: calc(100% - 258px);
+  }
+}
